@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { useEncounter } from '../contexts/EncounterContext';
+import { useIncident } from '../contexts/IncidentContext';
 import { 
   Clock, 
   User, 
@@ -38,7 +38,7 @@ import {
 } from "@/components/ui/accordion";
 
 const Index = () => {
-  const { activeEncounter, isLoading } = useEncounter();
+  const { activeIncident, isLoading } = useIncident();
   const { theme, resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const [isInitializing, setIsInitializing] = useState(false);
@@ -75,9 +75,9 @@ const Index = () => {
     loadDevData();
   }, []);
   
-  // If we have an active encounter, redirect
-  if (!isLoading && activeEncounter) {
-    return <Navigate to={`/encounter/${activeEncounter.id}/patient`} replace />;
+  // If we have an active incident, redirect
+  if (!isLoading && activeIncident) {
+    return <Navigate to={`/incident/${activeIncident.id}/patient`} replace />;
   }
   
   return (
@@ -102,13 +102,13 @@ const Index = () => {
                 Clinical decision support for paramedics at the point of care
               </p>
               <Button 
-                onClick={() => navigate('/new-encounter')}
+                onClick={() => navigate('/new-incident')}
                 disabled={isLoading || isInitializing}
                 size="lg"
                 className="bg-white hover:bg-nhs-pale-grey text-nhs-dark-blue font-bold py-3 px-6 rounded-lg shadow-lg text-lg flex items-center justify-center touch-target"
               >
                 <Plus className="mr-2" size={24} />
-                Start New Encounter
+                Start New Incident
               </Button>
             </div>
             <div className="bg-white p-6 rounded-full shadow-lg h-40 w-40 flex items-center justify-center">
