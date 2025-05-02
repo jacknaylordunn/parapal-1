@@ -11,8 +11,38 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
 
+// Define the drug type interfaces for better type safety
+interface BaseDrug {
+  id: string;
+  name: string;
+  routes: string[];
+  concentration: string;
+  notes: string;
+}
+
+interface AdultDrug extends BaseDrug {
+  dose: string;
+  volume: string;
+}
+
+interface PediatricWeightBasedDrug extends BaseDrug {
+  weightBased: true;
+  dosePerKg: string | Record<string, string>;
+  maxDose: string | Record<string, string>;
+}
+
+interface PediatricAgeBasedDrug extends BaseDrug {
+  weightBased: false;
+  doseByAge: Record<string, string>;
+}
+
+type DrugType = AdultDrug | PediatricWeightBasedDrug | PediatricAgeBasedDrug;
+
 // Drug dosage database
-const drugs = {
+const drugs: {
+  adult: AdultDrug[];
+  pediatric: (PediatricWeightBasedDrug | PediatricAgeBasedDrug)[];
+} = {
   adult: [
     { 
       id: 'adrenaline',
@@ -166,7 +196,7 @@ const DrugDosageCalculator = () => {
     }
     
     // For pediatric weight-based drugs
-    if (patientCategory === 'pediatric' && drug.weightBased) {
+    if (patientCategory === 'pediatric' && 'weightBased' in drug && drug.weightBased) {
       if (!weight) {
         toast({
           title: "Weight Required",
@@ -177,7 +207,7 @@ const DrugDosageCalculator = () => {
       }
       
       // Generate results
-      const results = calculatePediatricDose(drug, weight, selectedRoute);
+      const results = calculatePediatricDose(drug as PediatricWeightBasedDrug, weight, selectedRoute);
       setCalculationResults(results);
       
       toast({
@@ -189,7 +219,7 @@ const DrugDosageCalculator = () => {
     }
     
     // For pediatric age-based drugs
-    if (patientCategory === 'pediatric' && !drug.weightBased) {
+    if (patientCategory === 'pediatric' && 'weightBased' in drug && !drug.weightBased) {
       if (!age) {
         toast({
           title: "Age Required",
@@ -207,12 +237,14 @@ const DrugDosageCalculator = () => {
         ageCategory = '≥5 years';
       }
       
+      const ageBasedDrug = drug as PediatricAgeBasedDrug;
+      
       // Set results
       setCalculationResults({
-        dose: drug.doseByAge[ageCategory],
-        volume: calculateVolumeFromDose(drug.doseByAge[ageCategory], drug.concentration),
-        concentration: drug.concentration,
-        notes: drug.notes
+        dose: ageBasedDrug.doseByAge[ageCategory],
+        volume: calculateVolumeFromDose(ageBasedDrug.doseByAge[ageCategory], ageBasedDrug.concentration),
+        concentration: ageBasedDrug.concentration,
+        notes: ageBasedDrug.notes
       });
       
       toast({
@@ -224,11 +256,12 @@ const DrugDosageCalculator = () => {
     }
     
     // For adult drugs
+    const adultDrug = drug as AdultDrug;
     setCalculationResults({
-      dose: drug.dose,
-      volume: drug.volume,
-      concentration: drug.concentration,
-      notes: drug.notes
+      dose: adultDrug.dose,
+      volume: adultDrug.volume,
+      concentration: adultDrug.concentration,
+      notes: adultDrug.notes
     });
     
     toast({
@@ -238,11 +271,11 @@ const DrugDosageCalculator = () => {
   };
   
   // Calculate pediatric dose based on weight
-  const calculatePediatricDose = (drug: any, weight: number, route?: string) => {
+  const calculatePediatricDose = (drug: PediatricWeightBasedDrug, weight: number, route?: string) => {
     // For drugs with different dosages by route
-    if (route && drug.dosePerKg && typeof drug.dosePerKg !== 'string') {
+    if (route && typeof drug.dosePerKg !== 'string') {
       const dosePerKg = drug.dosePerKg[route];
-      const maxDose = drug.maxDose[route];
+      const maxDose = typeof drug.maxDose !== 'string' ? drug.maxDose[route] : drug.maxDose;
       
       // Extract numerical value from dosePerKg string (e.g., "10 mcg/kg" -> 10)
       const doseValueMatch = dosePerKg.match(/^([\d.]+)/);
@@ -514,7 +547,7 @@ const DrugDosageCalculator = () => {
                     
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Notes</p>
-                      <Alert variant="outline" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
+                      <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
                         <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <AlertDescription className="text-sm">
                           {calculationResults.notes}

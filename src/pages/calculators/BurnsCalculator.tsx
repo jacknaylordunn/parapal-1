@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ruler, DropletHalf, AlertTriangle, Info } from 'lucide-react';
+import { Ruler, Droplet, AlertTriangle, Info } from 'lucide-react'; // Changed DropletHalf to Droplet
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
@@ -185,6 +185,7 @@ const BurnsCalculator = () => {
   
   return (
     <div className="container mx-auto py-6">
+      {/* Header section */}
       <div className="flex items-center mb-8">
         <Ruler size={32} className="text-nhs-orange mr-4" />
         <div>
@@ -202,8 +203,10 @@ const BurnsCalculator = () => {
       </Alert>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column for burn assessment inputs */}
         <div className="lg:col-span-2">
           <Card>
+            {/* Card header */}
             <CardHeader>
               <CardTitle>Burns Assessment</CardTitle>
               <CardDescription>Select patient details and affected body areas</CardDescription>
@@ -328,7 +331,7 @@ const BurnsCalculator = () => {
                   {fluidRequirement !== null && (
                     <div className="space-y-2">
                       <h3 className="font-medium flex items-center">
-                        <DropletHalf className="mr-2 text-blue-600" size={18} />
+                        <Droplet className="mr-2 text-blue-600" size={18} /> {/* Changed DropletHalf to Droplet */}
                         Fluid Resuscitation (Parkland Formula)
                       </h3>
                       <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md border border-blue-200 dark:border-blue-800">
