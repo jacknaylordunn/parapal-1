@@ -1,5 +1,5 @@
 
-import { Outlet, NavLink, useParams, Link } from "react-router-dom";
+import { Outlet, NavLink, useParams, Link, useNavigate } from "react-router-dom";
 import { 
   User,
   Activity,
@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   Menu,
   Settings,
-  Save
+  Save,
+  Trash2
 } from "lucide-react";
 import { useEncounter } from "../../contexts/EncounterContext";
 import { useState, useEffect } from "react";
@@ -36,11 +37,22 @@ import { useToast } from "@/hooks/use-toast";
 
 const EncounterLayout = () => {
   const { id } = useParams<{ id: string }>();
-  const { activeEncounter, endEncounter } = useEncounter();
+  const { activeEncounter, endEncounter, deleteEncounter, refreshEncounter } = useEncounter();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showEndEncounterDialog, setShowEndEncounterDialog] = useState(false);
+  const [showDeleteEncounterDialog, setShowDeleteEncounterDialog] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  // Refresh encounter data periodically to get latest patient info
+  useEffect(() => {
+    const updateInterval = setInterval(() => {
+      refreshEncounter();
+    }, 10000); // Refresh every 10 seconds
+    
+    return () => clearInterval(updateInterval);
+  }, [refreshEncounter]);
   
   // Calculate elapsed time since encounter started
   useEffect(() => {
@@ -94,6 +106,7 @@ const EncounterLayout = () => {
 
   // Handle return to dashboard with encounter kept active
   const handleReturnToDashboard = () => {
+    navigate('/');
     toast({
       title: "Encounter Saved",
       description: "Your encounter is still active and can be resumed at any time.",
@@ -103,6 +116,11 @@ const EncounterLayout = () => {
   // Handle end encounter with confirmation dialog
   const handleEndEncounterClick = () => {
     setShowEndEncounterDialog(true);
+  };
+
+  // Handle delete encounter with confirmation dialog
+  const handleDeleteEncounterClick = () => {
+    setShowDeleteEncounterDialog(true);
   };
   
   const confirmEndEncounter = async () => {
@@ -116,6 +134,22 @@ const EncounterLayout = () => {
       toast({
         title: "Error",
         description: "Failed to close the encounter. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const confirmDeleteEncounter = async () => {
+    try {
+      await deleteEncounter();
+      toast({
+        title: "Encounter Deleted",
+        description: "The patient encounter has been deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the encounter. Please try again.",
         variant: "destructive",
       });
     }
@@ -176,6 +210,14 @@ const EncounterLayout = () => {
           className="w-full flex items-center justify-center"
         >
           <Save size={18} className="mr-2" /> Save & Close Encounter
+        </Button>
+        
+        <Button
+          onClick={handleDeleteEncounterClick}
+          variant="destructive"
+          className="w-full flex items-center justify-center"
+        >
+          <Trash2 size={18} className="mr-2" /> Delete Encounter
         </Button>
       </div>
     </div>
@@ -248,6 +290,25 @@ const EncounterLayout = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmEndEncounter} className="bg-nhs-blue hover:bg-nhs-dark-blue">
               Save & Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Encounter Dialog */}
+      <AlertDialog open={showDeleteEncounterDialog} onOpenChange={setShowDeleteEncounterDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Patient Encounter</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this patient encounter? 
+              This action cannot be undone and all data will be permanently lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteEncounter} variant="destructive">
+              Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -3,89 +3,98 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
 
 const QRISKCalculator = () => {
   const navigate = useNavigate();
+  const [age, setAge] = useState("");
+  const [sex, setSex] = useState("");
+  const [ethnicity, setEthnicity] = useState("white");
+  const [smokerStatus, setSmokerStatus] = useState("non");
+  const [systolicBP, setSystolicBP] = useState("");
+  const [totalCholesterol, setTotalCholesterol] = useState("");
+  const [hdlCholesterol, setHDLCholesterol] = useState("");
+  const [riskFactors, setRiskFactors] = useState<string[]>([]);
+  const [riskResult, setRiskResult] = useState<number | null>(null);
   
-  // Patient details
-  const [age, setAge] = useState<number>(55);
-  const [sex, setSex] = useState<string>("male");
-  const [ethnicity, setEthnicity] = useState<string>("white");
-  
-  // Risk factors
-  const [smoker, setSmoker] = useState<string>("non");
-  const [systolicBP, setSystolicBP] = useState<number>(130);
-  const [totalCholesterol, setTotalCholesterol] = useState<number>(5.0);
-  const [hdlCholesterol, setHDLCholesterol] = useState<number>(1.2);
-  
-  // Medical history
-  const [diabetes, setDiabetes] = useState<boolean>(false);
-  const [familyHistory, setFamilyHistory] = useState<boolean>(false);
-  const [chronicKidneyDisease, setChronicKidneyDisease] = useState<boolean>(false);
-  const [atrialFibrillation, setAtrialFibrillation] = useState<boolean>(false);
-  const [onBloodPressureTreatment, setOnBloodPressureTreatment] = useState<boolean>(false);
-  const [rheumatoidArthritis, setRheumatoidArthritis] = useState<boolean>(false);
-  
-  // Simple mock calculation for demonstration
-  // In a real app, this would use the actual QRISK3 algorithm
-  const calculateRisk = () => {
-    // This is a very simplified approximation for demonstration only
-    let baseRisk = (age - 40) * 0.5; // Age-based baseline
-    
-    if (baseRisk < 0) baseRisk = 0;
-    
-    // Add risk factors
-    if (sex === "male") baseRisk += 3;
-    if (smoker === "current") baseRisk += 5;
-    else if (smoker === "ex") baseRisk += 2;
-    
-    // Blood pressure risk
-    const bpRisk = (systolicBP - 120) * 0.05;
-    if (bpRisk > 0) baseRisk += bpRisk;
-    
-    // Cholesterol ratio
-    const cholesterolRatio = totalCholesterol / hdlCholesterol;
-    if (cholesterolRatio > 4) {
-      baseRisk += (cholesterolRatio - 4) * 2;
+  // Check if we're in the encounter context
+  const isInEncounter = window.location.pathname.includes('/encounter/');
+  const handleBackClick = () => {
+    if (isInEncounter) {
+      // If we're in an encounter, get the encounter ID from the URL
+      const pathParts = window.location.pathname.split('/');
+      const encounterIndex = pathParts.findIndex(part => part === 'encounter');
+      if (encounterIndex !== -1 && pathParts.length > encounterIndex + 1) {
+        const encounterId = pathParts[encounterIndex + 1];
+        navigate(`/encounter/${encounterId}/guidance`);
+      } else {
+        navigate(-1); // Fallback
+      }
+    } else {
+      navigate('/calculators');
     }
+  };
+  
+  const handleRiskFactorChange = (value: string) => {
+    setRiskFactors(current =>
+      current.includes(value)
+        ? current.filter(factor => factor !== value)
+        : [...current, value]
+    );
+  };
+  
+  const calculateRisk = () => {
+    // This is a simplified calculation and not the actual QRISK3 algorithm
+    // For demonstration purposes only
+    const baseRisk = parseInt(age) / 10;
     
-    // Medical conditions
-    if (diabetes) baseRisk += 4;
-    if (familyHistory) baseRisk += 3;
-    if (chronicKidneyDisease) baseRisk += 3;
-    if (atrialFibrillation) baseRisk += 5;
-    if (onBloodPressureTreatment) baseRisk += 2;
-    if (rheumatoidArthritis) baseRisk += 1.5;
+    // Add risk for being male (simplified factor)
+    let totalRisk = baseRisk;
+    if (sex === 'male') totalRisk += 2;
     
-    // Ethnicity adjustments (simplified)
-    if (ethnicity === "southAsian") baseRisk *= 1.4;
-    else if (ethnicity === "black") baseRisk *= 0.85;
+    // Add risk for smoking
+    if (smokerStatus === 'light') totalRisk += 3;
+    if (smokerStatus === 'moderate') totalRisk += 5;
+    if (smokerStatus === 'heavy') totalRisk += 8;
+    
+    // Add risk for high blood pressure
+    const sysBP = parseInt(systolicBP);
+    if (sysBP > 140) totalRisk += (sysBP - 140) / 10;
+    
+    // Add risk for cholesterol ratio
+    const cholRatio = parseFloat(totalCholesterol) / parseFloat(hdlCholesterol);
+    if (cholRatio > 4) totalRisk += (cholRatio - 4) * 2;
+    
+    // Add risk for comorbidities
+    totalRisk += riskFactors.length * 2;
     
     // Cap at 99%
-    return Math.min(Math.round(baseRisk), 99);
+    totalRisk = Math.min(Math.max(totalRisk, 1), 99);
+    
+    setRiskResult(Math.round(totalRisk));
   };
   
-  const riskScore = calculateRisk();
-  
-  // Get risk category and color
-  const getRiskCategory = (score: number) => {
-    if (score < 10) return { category: "Low", color: "text-green-600 dark:text-green-400" };
-    if (score < 20) return { category: "Moderate", color: "text-amber-600 dark:text-amber-400" };
-    return { category: "High", color: "text-red-600 dark:text-red-400" };
+  const getRiskCategory = () => {
+    if (!riskResult) return { level: "", color: "" };
+    
+    if (riskResult < 10) 
+      return { level: "Low Risk", color: "text-green-600 dark:text-green-400" };
+    if (riskResult < 20) 
+      return { level: "Moderate Risk", color: "text-amber-600 dark:text-amber-400" };
+    return { level: "High Risk", color: "text-red-600 dark:text-red-400" };
   };
   
-  const riskCategory = getRiskCategory(riskScore);
+  const riskCategory = getRiskCategory();
   
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => navigate('/calculators')} className="mr-2">
+        <Button variant="outline" onClick={handleBackClick} className="mr-2">
           <ArrowLeft size={16} className="mr-1" /> Back
         </Button>
         <h1 className="text-2xl font-bold text-nhs-dark-blue dark:text-white flex items-center">
@@ -93,255 +102,219 @@ const QRISKCalculator = () => {
         </h1>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
-        <div className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient Demographics</CardTitle>
-              <CardDescription>Basic patient information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="age">Age (years)</Label>
-                  <Input
-                    id="age"
-                    type="number"
-                    value={age}
-                    onChange={(e) => setAge(parseInt(e.target.value) || 0)}
-                    min="25"
-                    max="84"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Valid for ages 25-84</p>
-                </div>
-                
-                <div>
-                  <Label>Sex</Label>
-                  <RadioGroup
-                    value={sex}
-                    onValueChange={setSex}
-                    className="flex space-x-4 mt-1"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="male" id="sex-male" />
-                      <Label htmlFor="sex-male">Male</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="female" id="sex-female" />
-                      <Label htmlFor="sex-female">Female</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-              
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr] gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Patient Information</CardTitle>
+            <CardDescription>Enter details to calculate cardiovascular risk</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="ethnicity">Ethnicity</Label>
-                <select 
-                  id="ethnicity"
-                  value={ethnicity}
-                  onChange={(e) => setEthnicity(e.target.value)}
-                  className="w-full border rounded-md px-3 py-2 mt-1 dark:bg-gray-800 dark:border-gray-700"
-                >
-                  <option value="white">White</option>
-                  <option value="southAsian">South Asian</option>
-                  <option value="black">Black</option>
-                  <option value="chinese">Chinese</option>
-                  <option value="other">Other</option>
-                </select>
+                <Label htmlFor="age">Age (years)</Label>
+                <Input 
+                  id="age" 
+                  type="number" 
+                  placeholder="25-84" 
+                  min="25"
+                  max="84"
+                  value={age} 
+                  onChange={(e) => setAge(e.target.value)} 
+                />
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Risk Factors</CardTitle>
-              <CardDescription>Clinical measurements and lifestyle factors</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
               <div>
-                <Label>Smoking Status</Label>
-                <RadioGroup
-                  value={smoker}
-                  onValueChange={setSmoker}
-                  className="mt-1"
+                <Label>Sex</Label>
+                <RadioGroup 
+                  value={sex} 
+                  onValueChange={setSex}
+                  className="flex space-x-4 mt-2"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="non" id="smoke-non" />
-                    <Label htmlFor="smoke-non">Non-smoker</Label>
+                    <RadioGroupItem value="male" id="male" />
+                    <Label htmlFor="male">Male</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="ex" id="smoke-ex" />
-                    <Label htmlFor="smoke-ex">Ex-smoker</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="current" id="smoke-current" />
-                    <Label htmlFor="smoke-current">Current smoker</Label>
+                    <RadioGroupItem value="female" id="female" />
+                    <Label htmlFor="female">Female</Label>
                   </div>
                 </RadioGroup>
               </div>
-              
+            </div>
+            
+            <div>
+              <Label htmlFor="ethnicity">Ethnicity</Label>
+              <Select value={ethnicity} onValueChange={setEthnicity}>
+                <SelectTrigger id="ethnicity">
+                  <SelectValue placeholder="Select ethnicity" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="white">White</SelectItem>
+                  <SelectItem value="indian">Indian</SelectItem>
+                  <SelectItem value="pakistani">Pakistani</SelectItem>
+                  <SelectItem value="bangladeshi">Bangladeshi</SelectItem>
+                  <SelectItem value="black_caribbean">Black Caribbean</SelectItem>
+                  <SelectItem value="black_african">Black African</SelectItem>
+                  <SelectItem value="chinese">Chinese</SelectItem>
+                  <SelectItem value="other_asian">Other Asian</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="smoker">Smoking Status</Label>
+              <Select value={smokerStatus} onValueChange={setSmokerStatus}>
+                <SelectTrigger id="smoker">
+                  <SelectValue placeholder="Select smoking status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="non">Non-smoker</SelectItem>
+                  <SelectItem value="ex">Ex-smoker</SelectItem>
+                  <SelectItem value="light">Light smoker (≤10/day)</SelectItem>
+                  <SelectItem value="moderate">Moderate smoker (11-19/day)</SelectItem>
+                  <SelectItem value="heavy">Heavy smoker (≥20/day)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <div className="flex justify-between">
-                  <Label htmlFor="systolic-bp">Systolic Blood Pressure (mmHg)</Label>
-                  <span className="font-bold">{systolicBP}</span>
-                </div>
-                <Slider
-                  id="systolic-bp"
-                  defaultValue={[130]}
-                  min={90}
-                  max={200}
-                  step={1}
-                  onValueChange={(values) => setSystolicBP(values[0])}
-                  className="mt-2"
+                <Label htmlFor="systolicBP">Systolic BP (mmHg)</Label>
+                <Input 
+                  id="systolicBP" 
+                  type="number" 
+                  placeholder="e.g. 120" 
+                  value={systolicBP} 
+                  onChange={(e) => setSystolicBP(e.target.value)} 
                 />
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="total-cholesterol">Total Cholesterol (mmol/L)</Label>
-                  <Input
-                    id="total-cholesterol"
-                    type="number"
-                    value={totalCholesterol}
-                    onChange={(e) => setTotalCholesterol(parseFloat(e.target.value) || 0)}
-                    step="0.1"
-                    min="2"
-                    max="15"
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="hdl-cholesterol">HDL Cholesterol (mmol/L)</Label>
-                  <Input
-                    id="hdl-cholesterol"
-                    type="number"
-                    value={hdlCholesterol}
-                    onChange={(e) => setHDLCholesterol(parseFloat(e.target.value) || 0)}
-                    step="0.1"
-                    min="0.5"
-                    max="5"
-                    className="mt-1"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="totalChol">Total Cholesterol (mmol/L)</Label>
+                <Input 
+                  id="totalChol" 
+                  type="number" 
+                  step="0.1"
+                  placeholder="e.g. 5.2" 
+                  value={totalCholesterol} 
+                  onChange={(e) => setTotalCholesterol(e.target.value)} 
+                />
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Medical History</CardTitle>
-              <CardDescription>Pre-existing conditions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="diabetes" 
-                    checked={diabetes} 
-                    onCheckedChange={(checked) => setDiabetes(checked === true)}
-                  />
-                  <Label htmlFor="diabetes">Type 1 or Type 2 Diabetes</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="family-history" 
-                    checked={familyHistory} 
-                    onCheckedChange={(checked) => setFamilyHistory(checked === true)}
-                  />
-                  <Label htmlFor="family-history">Family history of coronary heart disease</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="ckd" 
-                    checked={chronicKidneyDisease} 
-                    onCheckedChange={(checked) => setChronicKidneyDisease(checked === true)}
-                  />
-                  <Label htmlFor="ckd">Chronic kidney disease (stage 3, 4, or 5)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="afib" 
-                    checked={atrialFibrillation} 
-                    onCheckedChange={(checked) => setAtrialFibrillation(checked === true)}
-                  />
-                  <Label htmlFor="afib">Atrial fibrillation</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="bp-treatment" 
-                    checked={onBloodPressureTreatment} 
-                    onCheckedChange={(checked) => setOnBloodPressureTreatment(checked === true)}
-                  />
-                  <Label htmlFor="bp-treatment">On blood pressure treatment</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="rheumatoid" 
-                    checked={rheumatoidArthritis} 
-                    onCheckedChange={(checked) => setRheumatoidArthritis(checked === true)}
-                  />
-                  <Label htmlFor="rheumatoid">Rheumatoid arthritis</Label>
-                </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="hdlChol">HDL Cholesterol (mmol/L)</Label>
+              <Input 
+                id="hdlChol" 
+                type="number" 
+                step="0.1"
+                placeholder="e.g. 1.2" 
+                value={hdlCholesterol} 
+                onChange={(e) => setHDLCholesterol(e.target.value)} 
+              />
+            </div>
+            
+            <div>
+              <Label className="mb-2 block">Medical Conditions</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { id: "diabetes", label: "Diabetes" },
+                  { id: "af", label: "Atrial Fibrillation" },
+                  { id: "rheumatoid", label: "Rheumatoid Arthritis" },
+                  { id: "ckd", label: "Chronic Kidney Disease" },
+                  { id: "hypertension", label: "Treated Hypertension" },
+                  { id: "migraines", label: "Migraines" },
+                ].map(item => (
+                  <div key={item.id} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={item.id} 
+                      checked={riskFactors.includes(item.id)}
+                      onCheckedChange={() => handleRiskFactorChange(item.id)}
+                    />
+                    <Label htmlFor={item.id} className="text-sm">{item.label}</Label>
+                  </div>
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            
+            <Button 
+              onClick={calculateRisk}
+              className="w-full mt-2" 
+              disabled={!age || !sex || !systolicBP || !totalCholesterol || !hdlCholesterol}
+            >
+              Calculate QRISK3 Score
+            </Button>
+          </CardContent>
+        </Card>
         
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>QRISK3 Results</CardTitle>
-              <CardDescription>10-year risk of heart attack or stroke</CardDescription>
+              <CardTitle>10-Year CVD Risk</CardTitle>
+              <CardDescription>Probability of cardiovascular disease in next 10 years</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-center mb-6">
-                <div className="inline-flex justify-center items-center h-36 w-36 rounded-full bg-gray-50 dark:bg-gray-800">
-                  <div className={`text-4xl font-bold ${riskCategory.color}`}>{riskScore}%</div>
-                </div>
-                <div className={`mt-3 text-xl font-semibold ${riskCategory.color}`}>
-                  {riskCategory.category} Risk
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                {riskScore >= 10 && (
-                  <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-                    <p className="font-medium">Recommendation:</p>
-                    <p className="text-sm">Consider statin therapy for primary prevention.</p>
+              {riskResult !== null ? (
+                <div className="text-center space-y-4">
+                  <div>
+                    <div className="text-6xl font-bold mb-2">{riskResult}%</div>
+                    <div className={`text-xl font-semibold ${riskCategory.color}`}>
+                      {riskCategory.level}
+                    </div>
                   </div>
-                )}
-                
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md text-sm">
-                  <p><span className="font-medium">Note:</span> This is a simplified calculation for educational purposes only. For clinical use, please refer to the official QRISK3 calculator.</p>
+                  
+                  <div className="h-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${
+                        riskResult < 10 
+                          ? 'bg-green-500' 
+                          : riskResult < 20 
+                            ? 'bg-amber-500' 
+                            : 'bg-red-500'
+                      }`}
+                      style={{ width: `${Math.min(riskResult, 100)}%` }}
+                    />
+                  </div>
+                  
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-left">
+                    <h3 className="font-medium mb-2">Interpretation:</h3>
+                    {riskResult < 10 && (
+                      <p>Low risk. General lifestyle advice recommended.</p>
+                    )}
+                    {riskResult >= 10 && riskResult < 20 && (
+                      <p>Moderate risk. Consider lifestyle modifications and monitor regularly.</p>
+                    )}
+                    {riskResult >= 20 && (
+                      <p>High risk. Consider intensive lifestyle interventions and preventative medication.</p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-40 text-center">
+                  <p className="text-gray-500 mb-2">Complete the form and click Calculate</p>
+                  <p className="text-sm text-gray-400">Risk estimation will appear here</p>
+                </div>
+              )}
             </CardContent>
             <CardFooter>
-              <Button className="w-full">Save Assessment</Button>
+              <Button className="w-full" disabled={riskResult === null}>Save to Patient Record</Button>
             </CardFooter>
           </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Risk Categories</CardTitle>
+              <CardTitle className="text-sm">About QRISK3</CardTitle>
             </CardHeader>
             <CardContent className="text-sm space-y-2">
-              <div className="flex justify-between">
-                <span>Less than 10%:</span>
-                <span className="text-green-600 dark:text-green-400">Low Risk</span>
-              </div>
-              <div className="flex justify-between">
-                <span>10% to 19%:</span>
-                <span className="text-amber-600 dark:text-amber-400">Moderate Risk</span>
-              </div>
-              <div className="flex justify-between">
-                <span>20% or higher:</span>
-                <span className="text-red-600 dark:text-red-400">High Risk</span>
-              </div>
-              <div className="pt-2">
-                <p>NICE recommends offering statins for primary prevention to people with a QRISK3 score of 10% or higher.</p>
-              </div>
+              <p>
+                QRISK3 is a prediction algorithm for cardiovascular disease that uses traditional risk factors 
+                (age, systolic blood pressure, smoking status and ratio of total serum cholesterol to high density 
+                lipoprotein cholesterol) together with measures of social deprivation, ethnicity, and several 
+                other clinical variables.
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                This is a simplified version for demonstration purposes only. The actual QRISK3 algorithm considers 
+                additional factors and should be used for clinical decisions.
+              </p>
             </CardContent>
           </Card>
         </div>

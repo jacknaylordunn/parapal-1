@@ -113,11 +113,29 @@ const NEWS2Calculator = () => {
   
   const totalScore = calculateTotalScore();
   const riskLevel = determineRiskLevel(totalScore);
+
+  // Check if we're in the encounter context
+  const isInEncounter = window.location.pathname.includes('/encounter/');
+  const handleBackClick = () => {
+    if (isInEncounter) {
+      // If we're in an encounter, get the encounter ID from the URL
+      const pathParts = window.location.pathname.split('/');
+      const encounterIndex = pathParts.findIndex(part => part === 'encounter');
+      if (encounterIndex !== -1 && pathParts.length > encounterIndex + 1) {
+        const encounterId = pathParts[encounterIndex + 1];
+        navigate(`/encounter/${encounterId}/guidance`);
+      } else {
+        navigate(-1); // Fallback
+      }
+    } else {
+      navigate('/calculators');
+    }
+  };
   
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-6">
-        <Button variant="outline" onClick={() => navigate('/calculators')} className="mr-2">
+        <Button variant="outline" onClick={handleBackClick} className="mr-2">
           <ArrowLeft size={16} className="mr-1" /> Back
         </Button>
         <h1 className="text-2xl font-bold text-nhs-dark-blue dark:text-white flex items-center">

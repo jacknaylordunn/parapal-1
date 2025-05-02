@@ -9,6 +9,7 @@ type EncounterContextType = {
   error: Error | null;
   createNewEncounter: (incidentNumber: string, callType: string) => Promise<number>;
   endEncounter: () => Promise<void>;
+  deleteEncounter: () => Promise<void>;
   refreshEncounter: () => Promise<void>;
 };
 
@@ -18,6 +19,7 @@ const EncounterContext = createContext<EncounterContextType>({
   error: null,
   createNewEncounter: async () => { throw new Error('Not implemented'); },
   endEncounter: async () => { throw new Error('Not implemented'); },
+  deleteEncounter: async () => { throw new Error('Not implemented'); },
   refreshEncounter: async () => { throw new Error('Not implemented'); }
 });
 
@@ -98,6 +100,23 @@ export const EncounterProvider = ({ children }: { children: React.ReactNode }) =
       throw err;
     }
   };
+
+  // Delete the active encounter
+  const deleteEncounter = async (): Promise<void> => {
+    if (!activeEncounter) return;
+    
+    try {
+      // Delete the encounter from the database
+      await db.encounters.delete(activeEncounter.id!);
+      
+      setActiveEncounter(null);
+      navigate('/');
+    } catch (err) {
+      console.error("Failed to delete encounter:", err);
+      setError(err instanceof Error ? err : new Error(String(err)));
+      throw err;
+    }
+  };
   
   // Refresh the active encounter
   const refreshEncounter = async (): Promise<void> => {
@@ -112,6 +131,7 @@ export const EncounterProvider = ({ children }: { children: React.ReactNode }) =
         error, 
         createNewEncounter, 
         endEncounter,
+        deleteEncounter,
         refreshEncounter
       }}>
       {children}
