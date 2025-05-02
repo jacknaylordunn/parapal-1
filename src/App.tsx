@@ -11,6 +11,10 @@ import { EncounterProvider } from "./contexts/EncounterContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import NewEncounterPage from "./pages/NewEncounterPage";
+import Guidelines from "./pages/Guidelines";
+import Calculators from "./pages/Calculators";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 import MainLayout from "./components/layout/MainLayout";
 import EncounterLayout from "./components/layout/EncounterLayout";
@@ -85,6 +89,10 @@ const App = () => {
                   <Route path="/" element={<MainLayout />}>
                     <Route index element={<Index />} />
                     <Route path="new-encounter" element={<NewEncounterPage />} />
+                    <Route path="guidelines" element={<Guidelines />} />
+                    <Route path="calculators" element={<Calculators />} />
+                    <Route path="profile" element={<Profile />} />
+                    <Route path="settings" element={<Settings />} />
                     
                     <Route path="encounter/:id" element={<EncounterLayout />}>
                       <Route path="patient" element={<PatientPage />} />
