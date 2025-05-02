@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
-import { db } from '../lib/db';
+import { db, ParaPalDatabase } from '../lib/db';
+import { Table } from 'dexie';
 
 /**
  * A custom hook for interacting with the IndexedDB database
@@ -14,16 +15,18 @@ export function useDatabase() {
    * Generic method to fetch data from any table
    */
   const fetchData = useCallback(async <T>(
-    tableName: keyof typeof db,
+    tableName: keyof ParaPalDatabase,
     id?: number
   ): Promise<T | null> => {
     setIsLoading(true);
     setError(null);
     try {
-      const result = id 
-        ? await db[tableName].get(id) as T
-        : null;
-      return result;
+      if (!id) return null;
+      
+      // Access the table as a Table<T> and then use its methods
+      const table = db[tableName] as unknown as Table<T, number>;
+      const result = await table.get(id);
+      return result || null;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
@@ -38,17 +41,20 @@ export function useDatabase() {
    * Fetch all records from a table
    */
   const fetchAll = useCallback(async <T>(
-    tableName: keyof typeof db,
-    filter?: (item: any) => boolean
+    tableName: keyof ParaPalDatabase,
+    filter?: (item: T) => boolean
   ): Promise<T[]> => {
     setIsLoading(true);
     setError(null);
     try {
-      let items = await db[tableName].toArray();
+      // Access the table as a Table<T> and then use its methods
+      const table = db[tableName] as unknown as Table<T, number>;
+      let items = await table.toArray();
+      
       if (filter) {
         items = items.filter(filter);
       }
-      return items as T[];
+      return items;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
@@ -63,13 +69,15 @@ export function useDatabase() {
    * Add a new record to a table
    */
   const addRecord = useCallback(async <T>(
-    tableName: keyof typeof db, 
-    data: any
+    tableName: keyof ParaPalDatabase, 
+    data: T
   ): Promise<number | null> => {
     setIsLoading(true);
     setError(null);
     try {
-      const id = await db[tableName].add(data);
+      // Access the table as a Table<T> and then use its methods
+      const table = db[tableName] as unknown as Table<T, number>;
+      const id = await table.add(data);
       return id;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -84,15 +92,17 @@ export function useDatabase() {
   /**
    * Update an existing record in a table
    */
-  const updateRecord = useCallback(async (
-    tableName: keyof typeof db,
+  const updateRecord = useCallback(async <T>(
+    tableName: keyof ParaPalDatabase,
     id: number,
-    data: any
+    data: Partial<T>
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     try {
-      await db[tableName].update(id, data);
+      // Access the table as a Table<T> and then use its methods
+      const table = db[tableName] as unknown as Table<T, number>;
+      await table.update(id, data);
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -108,13 +118,15 @@ export function useDatabase() {
    * Delete a record from a table
    */
   const deleteRecord = useCallback(async (
-    tableName: keyof typeof db,
+    tableName: keyof ParaPalDatabase,
     id: number
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     try {
-      await db[tableName].delete(id);
+      // Access the table as a Table<T> and then use its methods
+      const table = db[tableName] as unknown as Table<any, number>;
+      await table.delete(id);
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
