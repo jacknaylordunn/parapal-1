@@ -56,7 +56,10 @@ const Settings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="theme">Theme</Label>
-              <Select value={theme} onValueChange={(value) => setTheme(value)}>
+              <Select 
+                value={theme} 
+                onValueChange={(value) => setTheme(value as 'light' | 'dark' | 'system')}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select theme" />
                 </SelectTrigger>
