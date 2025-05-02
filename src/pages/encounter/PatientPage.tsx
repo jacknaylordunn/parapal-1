@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, PatientDetails } from '../../lib/db';
 import { calculateAge } from '../../lib/clinical-utils';
-import { Save, UserCheck } from 'lucide-react';
+import { Save, UserCheck, AlertTriangle } from 'lucide-react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const PatientPage = () => {
   const { id } = useParams<{ id: string }>();
   const encounterId = parseInt(id || '0');
+  const { resolvedTheme } = useTheme();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -127,13 +129,13 @@ const PatientPage = () => {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Patient Details</h1>
         <button
           onClick={savePatientData}
           disabled={isSaving}
-          className="bg-nhs-blue hover:bg-nhs-dark-blue text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-nhs-blue dark:bg-nhs-bright-blue hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue text-white px-4 py-2 rounded-md flex items-center transition-colors"
         >
           <Save size={18} className="mr-2" />
           {isSaving ? 'Saving...' : 'Save'}
@@ -146,7 +148,7 @@ const PatientPage = () => {
           saveMessage.type === 'success' 
             ? 'bg-green-50 text-green-700 dark:bg-green-900 dark:text-green-200' 
             : 'bg-red-50 text-red-700 dark:bg-red-900 dark:text-red-200'
-        }`}>
+        } transition-colors`}>
           {saveMessage.text}
         </div>
       )}
@@ -156,10 +158,10 @@ const PatientPage = () => {
         <button
           type="button"
           onClick={handleUnknownPatientToggle}
-          className={`flex items-center p-3 rounded-md border ${
+          className={`flex items-center p-3 rounded-md border transition-colors ${
             isUnknownPatient 
               ? 'bg-amber-100 dark:bg-amber-900 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-200' 
-              : 'border-gray-300 dark:border-gray-600'
+              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
         >
           <UserCheck size={20} className="mr-2" />
@@ -169,23 +171,19 @@ const PatientPage = () => {
         <button
           type="button"
           onClick={() => setIsMajorIncident(!isMajorIncident)}
-          className={`flex items-center p-3 rounded-md border ${
+          className={`flex items-center p-3 rounded-md border transition-colors ${
             isMajorIncident 
               ? 'bg-red-100 dark:bg-red-900 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200' 
-              : 'border-gray-300 dark:border-gray-600'
+              : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
           }`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.84Z"/>
-            <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
-            <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
-          </svg>
+          <AlertTriangle size={20} className="mr-2" />
           Major Incident Casualty
         </button>
       </div>
       
-      <div className="clinical-card">
-        <h2 className="text-xl font-semibold mb-4">Demographics</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-semibold mb-4 text-nhs-blue dark:text-nhs-light-blue">Demographics</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Name fields */}
@@ -196,7 +194,7 @@ const PatientPage = () => {
               type="text"
               value={patientDetails.firstName || ''}
               onChange={(e) => setPatientDetails({...patientDetails, firstName: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -208,7 +206,7 @@ const PatientPage = () => {
               type="text"
               value={patientDetails.lastName || ''}
               onChange={(e) => setPatientDetails({...patientDetails, lastName: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -221,7 +219,7 @@ const PatientPage = () => {
               type="date"
               value={patientDetails.dateOfBirth ? new Date(patientDetails.dateOfBirth).toISOString().split('T')[0] : ''}
               onChange={handleDOBChange}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -234,7 +232,7 @@ const PatientPage = () => {
                 type="number"
                 value={patientDetails.age || ''}
                 onChange={(e) => setPatientDetails({...patientDetails, age: parseInt(e.target.value) || undefined})}
-                className="clinical-input w-full"
+                className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
                 disabled={isUnknownPatient || patientDetails.dateOfBirth !== undefined}
                 placeholder={patientDetails.dateOfBirth ? "Calculated from DOB" : ""}
               />
@@ -251,7 +249,7 @@ const PatientPage = () => {
               id="sex"
               value={patientDetails.sex || ''}
               onChange={(e) => setPatientDetails({...patientDetails, sex: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             >
               <option value="Male">Male</option>
@@ -269,7 +267,7 @@ const PatientPage = () => {
               type="text"
               value={patientDetails.nhsNumber || ''}
               onChange={(e) => setPatientDetails({...patientDetails, nhsNumber: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               placeholder="XXX XXX XXXX"
               disabled={isUnknownPatient}
             />
@@ -277,8 +275,8 @@ const PatientPage = () => {
         </div>
       </div>
       
-      <div className="clinical-card">
-        <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-5 border border-gray-200 dark:border-gray-700">
+        <h2 className="text-xl font-semibold mb-4 text-nhs-blue dark:text-nhs-light-blue">Contact Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Address */}
@@ -289,7 +287,7 @@ const PatientPage = () => {
               type="text"
               value={patientDetails.address || ''}
               onChange={(e) => setPatientDetails({...patientDetails, address: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -302,7 +300,7 @@ const PatientPage = () => {
               type="tel"
               value={patientDetails.contactNumber || ''}
               onChange={(e) => setPatientDetails({...patientDetails, contactNumber: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -315,7 +313,7 @@ const PatientPage = () => {
               type="text"
               value={patientDetails.nextOfKin || ''}
               onChange={(e) => setPatientDetails({...patientDetails, nextOfKin: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -328,7 +326,7 @@ const PatientPage = () => {
               type="tel"
               value={patientDetails.nextOfKinContact || ''}
               onChange={(e) => setPatientDetails({...patientDetails, nextOfKinContact: e.target.value})}
-              className="clinical-input w-full"
+              className="w-full px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-black dark:text-white focus:ring-2 focus:ring-nhs-blue dark:focus:ring-nhs-light-blue focus:border-transparent transition-colors"
               disabled={isUnknownPatient}
             />
           </div>
@@ -340,7 +338,7 @@ const PatientPage = () => {
         <button
           onClick={savePatientData}
           disabled={isSaving}
-          className="bg-nhs-blue hover:bg-nhs-dark-blue text-white px-6 py-3 rounded-md flex items-center"
+          className="bg-nhs-blue dark:bg-nhs-bright-blue hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue text-white px-6 py-3 rounded-md flex items-center transition-colors"
         >
           <Save size={18} className="mr-2" />
           {isSaving ? 'Saving...' : 'Save Patient Details'}

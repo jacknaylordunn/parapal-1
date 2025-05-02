@@ -65,7 +65,7 @@ const EncounterLayout = () => {
       <aside className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
         {/* Timer display */}
         <div className="text-center mb-4 font-mono p-2 bg-gray-100 dark:bg-gray-700 rounded-md flex justify-center items-center">
-          <Clock size={18} className="mr-2 text-nhs-blue" />
+          <Clock size={18} className="mr-2 text-nhs-blue dark:text-nhs-light-blue" />
           <span className="font-semibold">{elapsedTime}</span>
         </div>
         
@@ -73,7 +73,7 @@ const EncounterLayout = () => {
         <nav className="space-y-2 mb-4">
           <NavLink 
             to="/" 
-            className="encounter-nav-item text-nhs-blue hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <Home size={24} className="mr-2" /> Dashboard
           </NavLink>
@@ -85,7 +85,11 @@ const EncounterLayout = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) => 
-                `encounter-nav-item ${isActive ? 'active' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`
+                `flex items-center p-2 rounded-md ${
+                  isActive 
+                    ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' 
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`
               }
             >
               {item.icon}
