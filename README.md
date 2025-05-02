@@ -1,73 +1,106 @@
-# Welcome to your Lovable project
 
-## Project info
+# ParaPal - Paramedic Clinical Decision Support
 
-**URL**: https://lovable.dev/projects/94035552-0e9c-457a-932a-a3421a947309
+ParaPal is a progressive web application (PWA) designed to support HCPC-registered paramedics and ambulance crews operating within NHS and private ambulance trusts in England, UK. It provides tools for managing patient encounters, recording clinical data, accessing guidelines, performing clinical calculations, and streamlining documentation.
 
-## How can I edit this code?
+## ⚠️ IMPORTANT: Development Version
 
-There are several ways of editing your application.
+**This application is a prototype and NOT intended for clinical use.** All clinical information is placeholder content and has not undergone validation by healthcare professionals.
 
-**Use Lovable**
+## Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/94035552-0e9c-457a-932a-a3421a947309) and start prompting.
+- **Offline-First Design**: Critical functions work without internet connectivity
+- **Patient Encounter Management**: Record patient demographics and track incidents
+- **Vital Signs Recording**: Track and trend vital signs with automated NEWS2 calculation
+- **Patient History Documentation**: Record medical history, medications, and allergies
+- **Clinical Guidance**: Access to JRCALC guidelines and drug formulary (placeholder content)
+- **Clinical Calculators**: Tools for paediatric doses, GCS, and other calculations
+- **ATMIST Handover**: Generate structured handover reports
 
-Changes made via Lovable will be committed automatically to this repo.
+## Technical Stack
 
-**Use your preferred IDE**
+- React + TypeScript
+- Vite for building
+- IndexedDB (via Dexie.js) for offline data storage
+- PWA with service workers for offline capability
+- Tailwind CSS for styling
+- Recharts for vital sign trends visualization
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Local Development
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Prerequisites
 
-Follow these steps:
+- Node.js (v18 or higher recommended)
+- npm or pnpm package manager
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Setting Up
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+1. Clone the repository:
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+git clone <repository-url>
+cd parapal
 ```
 
-**Edit a file directly in GitHub**
+2. Install dependencies:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm install
+# or
+pnpm install
+```
 
-**Use GitHub Codespaces**
+3. Start the development server:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run dev
+# or
+pnpm dev
+```
 
-## What technologies are used for this project?
+## Testing
 
-This project is built with:
+Run the unit tests with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm test
+# or
+pnpm test
+```
 
-## How can I deploy this project?
+## Building for Production
 
-Simply open [Lovable](https://lovable.dev/projects/94035552-0e9c-457a-932a-a3421a947309) and click on Share -> Publish.
+```bash
+npm run build
+# or
+pnpm build
+```
 
-## Can I connect a custom domain to my Lovable project?
+The build output will be in the `dist` folder, ready for deployment.
 
-Yes, you can!
+## Placeholder Features
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The following features are partially implemented or marked as placeholders:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- **Authentication**: Basic authentication UI is in place but not connected to a backend
+- **Data Synchronization**: Local storage works, but cloud sync is a placeholder
+- **Clinical Content**: Guidelines and drug information are placeholder content
+- **PDF Generation**: UI elements exist but functionality is not implemented
+- **Location Services**: Geolocation services are placeholder functionality
+- **Export/Upload**: Functionality to export/upload records is a placeholder
+- **Pre-alert Messaging**: UI elements exist but functionality is not implemented
+- **Body Map Feature**: UI placeholder only
+
+## License
+
+This project is provided for demonstration purposes only.
+
+## Acknowledgements
+
+- NHS Digital for UI design inspiration
+- JRCALC guidelines (referenced for structure, content is placeholder)
+- UK Resuscitation Council (referenced for algorithm structure)
+
+---
+
+Created with Lovable AI

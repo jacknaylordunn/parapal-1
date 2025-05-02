@@ -1,31 +1,33 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Light theme */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    --foreground: 222 47% 11%;
+    
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 222 47% 11%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
+    --popover-foreground: 222 47% 11%;
+    
+    --primary: 210 100% 36%; /* NHS Blue */
     --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
+    
+    --secondary: 222 78% 27%; /* NHS Dark Blue */
+    --secondary-foreground: 210 40% 98%;
+    
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
+    
+    --accent: 173 100% 32%; /* NHS Aqua */
     --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
+    
+    --destructive: 355 78% 47%; /* NHS Red */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
@@ -34,58 +36,55 @@
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
+    /* Sidebar */
+    --sidebar-background: 210 100% 36%; /* NHS Blue */
+    --sidebar-foreground: 0 0% 100%; 
+    --sidebar-primary: 210 100% 26%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 100% 43%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 100% 30%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Dark theme */
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
+    
+    --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
+    
+    --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
+    
+    --primary: 210 100% 36%; /* NHS Blue */
+    --primary-foreground: 210 40% 98%;
+    
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
-
+    
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
+    
+    --accent: 173 100% 32%; /* NHS Aqua */
     --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
+    
+    --destructive: 355 78% 47%; /* NHS Red */
     --destructive-foreground: 210 40% 98%;
-
+    
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+
+    /* Sidebar */
+    --sidebar-background: 222 47% 20%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 210 100% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-accent: 222 47% 25%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 47% 25%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
@@ -94,8 +93,60 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+  /* Clinical specific styles */
+  .news2-low {
+    @apply bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200;
+  }
+  .news2-medium {
+    @apply bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200;
+  }
+  .news2-high {
+    @apply bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200;
+  }
+  /* Special inputs for clinical data */
+  .clinical-input {
+    @apply px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-nhs-blue focus:border-transparent text-lg;
+  }
+  /* Large touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* Special Components */
+@layer components {
+  .clinical-card {
+    @apply bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 border border-gray-200 dark:border-gray-700;
+  }
+  
+  .news2-score-indicator {
+    @apply text-center font-bold text-lg px-3 py-1 rounded-full;
+  }
+
+  .encounter-nav-item {
+    @apply flex items-center justify-center p-3 rounded-md transition-colors;
+  }
+
+  .encounter-nav-item.active {
+    @apply bg-nhs-blue text-white;
+  }
+}
+
+/* Increase all form elements for touch */
+input, select, textarea, button {
+  @apply touch-target;
+}
+
+/* Custom radio/checkbox styles */
+input[type="radio"], input[type="checkbox"] {
+  @apply w-5 h-5;
+}
+
+/* Utility for emergency alerts */
+.emergency-alert {
+  @apply bg-nhs-red text-white px-4 py-3 rounded-md shadow-lg font-bold animate-pulse-alert;
 }
