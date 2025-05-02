@@ -1,18 +1,11 @@
-
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { guidelineCategories } from '../Guidelines';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { BookOpen, ChevronLeft, ExternalLink, Wifi, WifiOff } from 'lucide-react';
+import { BookOpen, ChevronLeft, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/components/ui/tooltip";
 
 // Type definitions
 type GuidelineParams = {
@@ -25,39 +18,7 @@ interface GuidelineContent {
   description: string;
   content: Record<string, any>;
   references: string[];
-  jrcalcUrl?: string; // Add JRCALC URL
 }
-
-// JRCALC URL mapping
-const jrcalcUrlMap: Record<string, string> = {
-  // Cardiac guidelines
-  'acs': 'https://jrcalc-web.netlify.app/guidelines/cardiovascular-acute-coronary-syndromes',
-  'ca': 'https://jrcalc-web.netlify.app/guidelines/cardiac-arrest',
-  'crd': 'https://jrcalc-web.netlify.app/guidelines/cardiovascular-arrhythmias',
-  'hf': 'https://jrcalc-web.netlify.app/guidelines/cardiovascular-acute-heart-failure',
-  
-  // Respiratory guidelines
-  'asthma': 'https://jrcalc-web.netlify.app/guidelines/respiratory-asthma',
-  'copd': 'https://jrcalc-web.netlify.app/guidelines/respiratory-copd',
-  'pe': 'https://jrcalc-web.netlify.app/guidelines/respiratory-pulmonary-embolism',
-  'pneumonia': 'https://jrcalc-web.netlify.app/guidelines/respiratory-pneumonia',
-
-  // Medical emergencies
-  'sepsis': 'https://jrcalc-web.netlify.app/guidelines/medical-emergencies-sepsis',
-  'stroke': 'https://jrcalc-web.netlify.app/guidelines/neurological-stroke-tia',
-  'diabetes': 'https://jrcalc-web.netlify.app/guidelines/medical-emergencies-glycaemic-emergencies',
-  'anaphylaxis': 'https://jrcalc-web.netlify.app/guidelines/medical-emergencies-anaphylaxis',
-
-  // Trauma
-  'tbi': 'https://jrcalc-web.netlify.app/guidelines/trauma-head-injury',
-  'spinal': 'https://jrcalc-web.netlify.app/guidelines/trauma-spinal-injury',
-  'burns': 'https://jrcalc-web.netlify.app/guidelines/trauma-burns-scalds',
-  'fractures': 'https://jrcalc-web.netlify.app/guidelines/trauma-limb-trauma',
-  'major-trauma': 'https://jrcalc-web.netlify.app/guidelines/trauma-major-trauma',
-
-  // Default to main guidelines page for any missing mappings
-  'default': 'https://jrcalc-web.netlify.app/guidelines'
-};
 
 const GuidelineDetail = () => {
   const { categoryId, guidelineId } = useParams<GuidelineParams>();
@@ -65,21 +26,6 @@ const GuidelineDetail = () => {
   const [guidelineData, setGuidelineData] = useState<GuidelineContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  
-  // Monitor online status
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
   
   useEffect(() => {
     // Find the category and guideline from the imported data
@@ -120,8 +66,7 @@ const GuidelineDetail = () => {
         "JRCALC Guidelines 2023",
         "UK Ambulance Services Clinical Practice Guidelines",
         "National Institute for Health and Care Excellence (NICE)"
-      ],
-      jrcalcUrl: jrcalcUrlMap[id] || jrcalcUrlMap.default
+      ]
     };
     
     // Customize content based on specific guideline ID
@@ -286,59 +231,6 @@ const GuidelineDetail = () => {
           `
         };
         break;
-
-      case 'tbi':
-        baseContent.content = {
-          overview: "Traumatic brain injury (TBI) ranges from mild concussion to severe intracerebral damage. Early management focuses on preventing secondary brain injury from hypoxia and hypotension.",
-          assessment: `
-            <h3>Initial Assessment</h3>
-            <ul>
-              <li>Mechanism of injury</li>
-              <li>Glasgow Coma Scale (GCS) score</li>
-              <li>Pupillary responses</li>
-              <li>Vital signs</li>
-              <li>External signs of head trauma</li>
-              <li>Neurological deficits</li>
-            </ul>
-            <h3>Risk Factors for Severe TBI</h3>
-            <ul>
-              <li>GCS <14 at any time since injury</li>
-              <li>Pupillary abnormalities</li>
-              <li>Seizures</li>
-              <li>Focal neurological signs</li>
-              <li>Penetrating injury</li>
-              <li>Anticoagulant or antiplatelet therapy</li>
-            </ul>
-          `,
-          management: `
-            <h3>Initial Management</h3>
-            <ol>
-              <li><strong>Airway:</strong> Consider advanced airway management if GCS ≤8</li>
-              <li><strong>Breathing:</strong> Maintain SpO2 >94%</li>
-              <li><strong>Circulation:</strong> Maintain systolic BP >110mmHg</li>
-              <li><strong>Disability:</strong> Monitor GCS and pupils</li>
-              <li><strong>Exposure:</strong> Check for associated injuries</li>
-            </ol>
-            <h3>Specific Interventions</h3>
-            <ol>
-              <li>Position head in neutral alignment with 30° elevation if no spinal injury</li>
-              <li>Control seizures if present (follow seizure protocol)</li>
-              <li>Consider rapid sequence induction if GCS ≤8 (if trained)</li>
-              <li>Pre-alert trauma center for GCS <14 with abnormal CT</li>
-            </ol>
-          `,
-          medications: `
-            <h3>Medications in TBI</h3>
-            <ul>
-              <li><strong>Analgesia:</strong> Titrated IV opioids (caution with respiratory depression)</li>
-              <li><strong>Anti-seizure:</strong> Midazolam, Diazepam as per seizure protocol</li>
-              <li><strong>IV fluids:</strong> Crystalloids to maintain systolic BP >110mmHg</li>
-              <li><strong>RSI drugs:</strong> As per local protocol (if appropriately trained)</li>
-              <li><strong>Avoid:</strong> Hypotonic solutions (e.g., Dextrose 5%)</li>
-            </ul>
-          `
-        };
-        break;
         
       default:
         // Keep base content for other guidelines
@@ -346,16 +238,6 @@ const GuidelineDetail = () => {
     }
     
     return baseContent;
-  };
-  
-  const openJrcalcGuideline = () => {
-    if (!guidelineData?.jrcalcUrl) return;
-    
-    // Log external link access
-    console.log(`Opening external JRCALC link: ${guidelineData.jrcalcUrl}`);
-    
-    // Open in a new tab
-    window.open(guidelineData.jrcalcUrl, '_blank', 'noopener,noreferrer');
   };
   
   if (loading) {
@@ -445,25 +327,7 @@ const GuidelineDetail = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
-            <span>References</span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    {isOnline ? (
-                      <Wifi size={18} className="text-green-500" />
-                    ) : (
-                      <WifiOff size={18} className="text-red-500" />
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {isOnline ? "Online - external links available" : "Offline - external links unavailable"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </CardTitle>
+          <CardTitle className="text-lg">References</CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="list-disc pl-5 space-y-1">
@@ -471,31 +335,11 @@ const GuidelineDetail = () => {
               <li key={index} className="text-sm text-gray-700 dark:text-gray-300">{ref}</li>
             ))}
           </ul>
-          
-          <div className="mt-4">
-            <Button 
-              onClick={openJrcalcGuideline} 
-              variant="outline"
-              disabled={!isOnline}
-              className="flex items-center text-nhs-blue hover:text-nhs-dark-blue"
-            >
-              <ExternalLink size={16} className="mr-2" />
-              View Official JRCALC Guideline
-            </Button>
-            {!isOnline && (
-              <p className="mt-2 text-sm text-amber-600 dark:text-amber-400">
-                You appear to be offline. External links are unavailable.
-              </p>
-            )}
-          </div>
         </CardContent>
         <CardFooter className="border-t pt-4">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             <p>Last updated: May 2023</p>
             <p className="mt-1 text-xs">This guideline is for reference only. Always follow your local protocols and policies.</p>
-            <p className="mt-2 text-xs italic">
-              © JRCALC/Association of Ambulance Chief Executives (AACE). For full guidelines, refer to the official JRCALC publication.
-            </p>
           </div>
         </CardFooter>
       </Card>

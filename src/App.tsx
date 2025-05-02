@@ -6,18 +6,18 @@ import { ToastProvider } from "@/components/ui/toast-notification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { IncidentProvider } from "./contexts/IncidentContext";
+import { EncounterProvider } from "./contexts/EncounterContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
-import NewIncidentPage from "./pages/NewIncidentPage";
+import NewEncounterPage from "./pages/NewEncounterPage";
 import Guidelines from "./pages/Guidelines";
 import Calculators from "./pages/Calculators";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
 import MainLayout from "./components/layout/MainLayout";
-import IncidentLayout from "./components/layout/IncidentLayout";
+import EncounterLayout from "./components/layout/EncounterLayout";
 import PatientPage from "./pages/encounter/PatientPage";
 import VitalsPage from "./pages/encounter/VitalsPage";
 import HistoryPage from "./pages/encounter/HistoryPage";
@@ -91,14 +91,14 @@ const App = () => {
       <ThemeProvider>
         <ToastProvider>
           <BrowserRouter>
-            <IncidentProvider>
+            <EncounterProvider>
               <TooltipProvider>
                 <Toaster />
                 <Sonner />
                 <Routes>
                   <Route path="/" element={<MainLayout />}>
                     <Route index element={<Index />} />
-                    <Route path="new-incident" element={<NewIncidentPage />} />
+                    <Route path="new-encounter" element={<NewEncounterPage />} />
                     <Route path="guidelines" element={<Guidelines />} />
                     <Route path="guidelines/:categoryId/:guidelineId" element={<GuidelineDetail />} />
                     <Route path="calculators" element={<Calculators />} />
@@ -110,7 +110,7 @@ const App = () => {
                     <Route path="profile" element={<Profile />} />
                     <Route path="settings" element={<Settings />} />
                     
-                    <Route path="incident/:id" element={<IncidentLayout />}>
+                    <Route path="encounter/:id" element={<EncounterLayout />}>
                       <Route path="patient" element={<PatientPage />} />
                       <Route path="vitals" element={<VitalsPage />} />
                       <Route path="history" element={<HistoryPage />} />
@@ -122,7 +122,7 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </TooltipProvider>
-            </IncidentProvider>
+            </EncounterProvider>
           </BrowserRouter>
         </ToastProvider>
       </ThemeProvider>

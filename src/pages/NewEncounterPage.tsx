@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useIncident } from '../contexts/IncidentContext';
+import { useEncounter } from '../contexts/EncounterContext';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast-notification';
@@ -16,13 +16,13 @@ const callTypes = [
   'Other'
 ];
 
-const NewIncidentPage = () => {
+const NewEncounterPage = () => {
   const [incidentNumber, setIncidentNumber] = useState('');
   const [callType, setCallType] = useState('Medical');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   
-  const { createNewIncident } = useIncident();
+  const { createNewEncounter } = useEncounter();
   const navigate = useNavigate();
   
   // Handle form submission
@@ -54,14 +54,14 @@ const NewIncidentPage = () => {
     setIsSubmitting(true);
     
     try {
-      // Create new incident and redirect to patient details
-      const newId = await createNewIncident(incidentNumber.trim(), callType);
+      // Create new encounter and redirect to patient details
+      const newId = await createNewEncounter(incidentNumber.trim(), callType);
       
       // Provide feedback before navigation
-      navigate(`/incident/${newId}/patient`);
+      navigate(`/encounter/${newId}/patient`);
     } catch (err) {
-      console.error('Incident creation error:', err);
-      setValidationError('Failed to create incident. Please try again.');
+      console.error('Encounter creation error:', err);
+      setValidationError('Failed to create encounter. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -69,7 +69,7 @@ const NewIncidentPage = () => {
   
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Start New Incident</h1>
+      <h1 className="text-2xl font-bold mb-6">Start New Encounter</h1>
       
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -151,7 +151,7 @@ const NewIncidentPage = () => {
               ) : (
                 <>
                   <CheckCircle className="mr-2" size={20} />
-                  Start Incident
+                  Start Encounter
                 </>
               )}
             </button>
@@ -162,4 +162,4 @@ const NewIncidentPage = () => {
   );
 };
 
-export default NewIncidentPage;
+export default NewEncounterPage;

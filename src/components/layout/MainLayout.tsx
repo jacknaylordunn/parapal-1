@@ -1,7 +1,7 @@
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { useIncident } from "../../contexts/IncidentContext";
+import { useEncounter } from "../../contexts/EncounterContext";
 import { ChevronLeft } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { activeIncident, isLoading } = useIncident();
+  const { activeEncounter, isLoading } = useEncounter();
   
   // Check if we're on a subpage that needs a back button
   const showBackButton = () => {
@@ -19,27 +19,27 @@ const MainLayout = () => {
         location.pathname === '/calculators' ||
         location.pathname === '/profile' ||
         location.pathname === '/settings' ||
-        location.pathname === '/new-incident') {
+        location.pathname === '/new-encounter') {
       return false;
     }
     return true;
   };
   
-  // Redirect to active incident or home depending on the path and active incident
+  // Redirect to active encounter or home depending on the path and active encounter
   useEffect(() => {
     if (!isLoading) {
       const isRootPath = location.pathname === '/';
-      const isIncidentPath = location.pathname.startsWith('/incident/');
+      const isEncounterPath = location.pathname.startsWith('/encounter/');
       
-      if (activeIncident && isRootPath) {
-        // If we have an active incident and we're at the root, redirect to the incident
-        navigate(`/incident/${activeIncident.id}/patient`);
-      } else if (!activeIncident && isIncidentPath) {
-        // If we don't have an active incident but we're on an incident path, redirect home
+      if (activeEncounter && isRootPath) {
+        // If we have an active encounter and we're at the root, redirect to the encounter
+        navigate(`/encounter/${activeEncounter.id}/patient`);
+      } else if (!activeEncounter && isEncounterPath) {
+        // If we don't have an active encounter but we're on an encounter path, redirect home
         navigate('/');
       }
     }
-  }, [activeIncident, isLoading, location.pathname, navigate]);
+  }, [activeEncounter, isLoading, location.pathname, navigate]);
   
   return (
     <div className="min-h-screen dark:bg-gray-900 dark:text-white transition-colors duration-300">
@@ -65,9 +65,9 @@ const MainLayout = () => {
           >
             ParaPal
           </h1>
-          {activeIncident && (
+          {activeEncounter && (
             <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-3 py-1 text-sm font-bold border dark:border-white">
-              {activeIncident.incidentNumber}
+              {activeEncounter.incidentNumber}
             </span>
           )}
         </div>
