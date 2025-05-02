@@ -92,17 +92,17 @@ export function useDatabase() {
   /**
    * Update an existing record in a table
    */
-  const updateRecord = useCallback(async <T>(
+  const updateRecord = useCallback(async <T extends object>(
     tableName: keyof ParaPalDatabase,
     id: number,
-    data: Partial<T>
+    changes: Partial<T>
   ): Promise<boolean> => {
     setIsLoading(true);
     setError(null);
     try {
       // Access the table as a Table<T> and then use its methods
       const table = db[tableName] as unknown as Table<T, number>;
-      await table.update(id, data);
+      await table.update(id, changes as any);
       return true;
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
