@@ -16,6 +16,12 @@ import Calculators from "./pages/Calculators";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
+import News2Calculator from "./components/calculators/News2Calculator";
+import GcsCalculator from "./components/calculators/GcsCalculator";
+import DrugDosageCalculator from "./components/calculators/DrugDosageCalculator";
+import QriskCalculator from "./pages/calculators/QriskCalculator";
+import BurnsCalculator from "./pages/calculators/BurnsCalculator";
+
 import MainLayout from "./components/layout/MainLayout";
 import EncounterLayout from "./components/layout/EncounterLayout";
 import PatientPage from "./pages/encounter/PatientPage";
@@ -91,6 +97,11 @@ const App = () => {
                     <Route path="new-encounter" element={<NewEncounterPage />} />
                     <Route path="guidelines" element={<Guidelines />} />
                     <Route path="calculators" element={<Calculators />} />
+                    <Route path="calculators/news2" element={<News2Calculator />} />
+                    <Route path="calculators/gcs" element={<GcsCalculator />} />
+                    <Route path="calculators/drug-dosage" element={<DrugDosageCalculator />} />
+                    <Route path="calculators/qrisk" element={<QriskCalculator />} />
+                    <Route path="calculators/burns" element={<BurnsCalculator />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="settings" element={<Settings />} />
                     

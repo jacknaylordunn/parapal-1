@@ -1,107 +1,173 @@
 
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { useEncounter } from "../../contexts/EncounterContext";
-import { Sun, Moon, Laptop } from "lucide-react";
-import { useTheme } from "../../contexts/ThemeContext";
+import React, { useState } from 'react';
+import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Menu, X, Home, UserRound, BookText, Calculator, Settings as SettingsIcon, Sun, Moon, Stethoscope, ChevronsUpDown } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Button } from '@/components/ui/button';
+import { useEncounter } from '@/contexts/EncounterContext';
+import { useMobile } from '@/hooks/use-mobile';
 
 const MainLayout = () => {
-  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { theme, resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
-  const { activeEncounter, isLoading } = useEncounter();
-  const { theme, resolvedTheme, toggleTheme, setTheme } = useTheme();
-  
-  // Redirect to active encounter or home depending on the path and active encounter
-  useEffect(() => {
-    if (!isLoading) {
-      const isRootPath = location.pathname === '/';
-      const isEncounterPath = location.pathname.startsWith('/encounter/');
-      
-      if (activeEncounter && isRootPath) {
-        // If we have an active encounter and we're at the root, redirect to the encounter
-        navigate(`/encounter/${activeEncounter.id}/patient`);
-      } else if (!activeEncounter && isEncounterPath) {
-        // If we don't have an active encounter but we're on an encounter path, redirect home
-        navigate('/');
-      }
-    }
-  }, [activeEncounter, isLoading, location.pathname, navigate]);
-  
-  // Get the icon based on current theme setting
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light': return <Sun size={24} />;
-      case 'dark': return <Moon size={24} />;
-      case 'system': return <Laptop size={24} />;
-    }
+  const { activeEncounter } = useEncounter();
+  const isMobile = useMobile();
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen);
   };
-  
+
+  const closeMenu = () => {
+    if (menuOpen) setMenuOpen(false);
+  };
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  // NavLink component with active state
+  const NavLink = ({ 
+    to, 
+    label, 
+    icon
+  }: { 
+    to: string, 
+    label: string, 
+    icon: React.ReactNode 
+  }) => {
+    const active = isActive(to);
+    
+    return (
+      <Link
+        to={to}
+        className={`
+          flex items-center px-4 py-3 rounded-md transition-colors
+          ${active 
+            ? 'bg-nhs-blue text-white' 
+            : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+          }
+        `}
+        onClick={closeMenu}
+      >
+        <span className="mr-3">{icon}</span>
+        {label}
+      </Link>
+    );
+  };
+
   return (
-    <div className="min-h-screen dark:bg-gray-900 dark:text-white transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-nhs-blue dark:bg-nhs-dark-blue text-white p-4 shadow-md flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-2xl font-bold">ParaPal</h1>
-          {activeEncounter && (
-            <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-3 py-1 text-sm font-bold border dark:border-white">
-              {activeEncounter.incidentNumber}
-            </span>
-          )}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Mobile Navigation Header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 shadow-sm z-40 px-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <button onClick={toggleMenu} aria-label="Toggle menu" className="p-2 rounded-md">
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <Link to="/" className="ml-2 flex items-center">
+            <Stethoscope size={24} className="text-nhs-blue mr-2" />
+            <span className="font-bold text-xl">ParaPal</span>
+          </Link>
         </div>
-        <div className="flex items-center space-x-2">
-          {/* Theme dropdown */}
-          <div className="relative group">
-            <button 
-              className="p-2 rounded-full hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue transition-colors"
-              aria-label="Theme settings"
-            >
-              {getThemeIcon()}
-            </button>
-            
-            <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 hidden group-hover:block z-10">
-              <div className="py-1" role="menu" aria-orientation="vertical">
-                <button
-                  onClick={() => setTheme('light')}
-                  className={`${theme === 'light' ? 'bg-gray-100 dark:bg-gray-700' : ''} flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left`}
-                >
-                  <Sun size={16} className="mr-2" /> Light
-                </button>
-                <button
-                  onClick={() => setTheme('dark')}
-                  className={`${theme === 'dark' ? 'bg-gray-100 dark:bg-gray-700' : ''} flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left`}
-                >
-                  <Moon size={16} className="mr-2" /> Dark
-                </button>
-                <button
-                  onClick={() => setTheme('system')}
-                  className={`${theme === 'system' ? 'bg-gray-100 dark:bg-gray-700' : ''} flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 w-full text-left`}
-                >
-                  <Laptop size={16} className="mr-2" /> System
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          {/* Simple toggle button */}
-          <button 
-            onClick={toggleTheme} 
-            className="ml-2 p-2 rounded-full hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue transition-colors"
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
             aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {resolvedTheme === 'dark' ? <Sun size={24} /> : <Moon size={24} />}
-          </button>
+            {resolvedTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </Button>
         </div>
       </header>
-      
-      {/* Main Content */}
-      <main className="container mx-auto p-4">
-        <Outlet />
-      </main>
-      
-      {/* Footer */}
-      <footer className="bg-nhs-dark-blue dark:bg-gray-800 text-white p-3 text-center text-sm">
-        <p>ParaPal Clinical Decision Support (DEVELOPMENT VERSION - NOT FOR CLINICAL USE)</p>
-      </footer>
+
+      {/* Mobile Sidebar Overlay */}
+      {menuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={closeMenu}
+        />
+      )}
+
+      {/* Sidebar Navigation */}
+      <div 
+        className={`
+          fixed md:static top-16 left-0 h-[calc(100vh-64px)] md:h-screen w-64 bg-white dark:bg-gray-800
+          transform transition-transform duration-300 z-30 overflow-y-auto
+          md:transform-none shadow-lg md:shadow-none
+          ${menuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        <div className="hidden md:flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <Link to="/" className="flex items-center">
+            <Stethoscope size={24} className="text-nhs-blue mr-2" />
+            <span className="font-bold text-xl">ParaPal</span>
+          </Link>
+        </div>
+        
+        <div className="p-4 space-y-1">
+          <NavLink to="/" label="Home" icon={<Home size={20} />} />
+          <NavLink to="/guidelines" label="Guidelines" icon={<BookText size={20} />} />
+          <NavLink to="/calculators" label="Calculators" icon={<Calculator size={20} />} />
+          <NavLink to="/profile" label="Profile" icon={<UserRound size={20} />} />
+          <NavLink to="/settings" label="Settings" icon={<SettingsIcon size={20} />} />
+        </div>
+
+        {activeEncounter && (
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">Current Encounter</h3>
+            <Link 
+              to={`/encounter/${activeEncounter.id}/patient`}
+              className="flex items-center justify-between p-3 bg-nhs-blue bg-opacity-10 text-nhs-blue rounded-md hover:bg-opacity-20 transition-colors"
+              onClick={closeMenu}
+            >
+              <div className="flex items-center">
+                <Stethoscope size={18} className="mr-2" />
+                <div className="text-sm">
+                  <span className="block font-medium">Return to Active Encounter</span>
+                  <span className="block text-xs opacity-80">
+                    {activeEncounter.patientName || 'Unknown Patient'}
+                  </span>
+                </div>
+              </div>
+              <ChevronsUpDown size={16} />
+            </Link>
+          </div>
+        )}
+        
+        {isMobile && (
+          <div className="p-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={toggleTheme}
+            >
+              {resolvedTheme === 'dark' ? <Sun size={18} className="mr-2" /> : <Moon size={18} className="mr-2" />}
+              {resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 md:ml-0">
+        {/* Desktop Header */}
+        <header className="hidden md:flex h-16 bg-white dark:bg-gray-800 shadow-sm items-center justify-end px-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {resolvedTheme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </Button>
+        </header>
+        
+        {/* Content */}
+        <main className="pt-20 md:pt-4 px-4 md:px-6 pb-20">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, Activity, Heart, Brain, Weight, Ruler, ChevronRight, Search } from 'lucide-react';
+import { Calculator, Activity, Heart, Brain, Weight, Ruler, ChevronRight, Search, ChevronLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -23,7 +23,7 @@ const calculatorsList = [
     details: 'Assess level of consciousness in a standardized way'
   },
   {
-    id: 'weight',
+    id: 'drug-dosage',
     title: 'Drug Dosage',
     description: 'Weight-based medication calculator',
     icon: <Weight className="text-nhs-green" />,
@@ -54,15 +54,25 @@ const Calculators = () => {
     calculator.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     calculator.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleBack = () => {
+    navigate(-1);
+  };
   
   return (
     <div className="container mx-auto py-6">
-      <div className="flex items-center mb-8">
-        <Calculator size={32} className="text-nhs-blue mr-4" />
-        <div>
-          <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Clinical Calculators</h1>
-          <p className="text-gray-600 dark:text-gray-400">Tools to assist with clinical decision making</p>
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center">
+          <Calculator size={32} className="text-nhs-blue mr-4" />
+          <div>
+            <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Clinical Calculators</h1>
+            <p className="text-gray-600 dark:text-gray-400">Tools to assist with clinical decision making</p>
+          </div>
         </div>
+        <Button variant="outline" onClick={handleBack}>
+          <ChevronLeft className="mr-1" size={16} />
+          Back
+        </Button>
       </div>
       
       {/* Search */}
