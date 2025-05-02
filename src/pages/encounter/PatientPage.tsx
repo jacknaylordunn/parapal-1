@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, PatientDetails } from '../../lib/db';
@@ -14,7 +13,7 @@ const PatientPage = () => {
   const { id } = useParams<{ id: string }>();
   const encounterId = parseInt(id || '0');
   const { resolvedTheme } = useTheme();
-  const { toast } = useToast();
+  const { showToast } = useToast();
   
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -76,21 +75,13 @@ const PatientPage = () => {
         lastUpdated: new Date()
       });
       
-      toast({
-        title: "Patient details saved",
-        description: "Patient information has been updated successfully",
-        variant: "success"
-      });
+      showToast('success', "Patient details saved successfully");
       
       // Log the event
       await db.logIncident(encounterId, 'Patient Details Updated');
     } catch (error) {
       console.error('Error saving patient data:', error);
-      toast({
-        title: "Save failed",
-        description: "Could not save patient details. Please try again.",
-        variant: "destructive"
-      });
+      showToast('error', "Could not save patient details. Please try again.");
     } finally {
       setIsSaving(false);
     }
