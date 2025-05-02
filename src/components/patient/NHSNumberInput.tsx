@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
+import { Check, AlertCircle } from 'lucide-react';
 
 interface NHSNumberInputProps {
   value: string;
@@ -73,31 +74,53 @@ export const NHSNumberInput: React.FC<NHSNumberInputProps> = ({
   const isInvalid = isComplete && !isValid;
   
   return (
-    <div className="space-y-1">
-      <Input
-        type="text"
-        value={value}
-        onChange={handleChange}
-        disabled={disabled}
-        placeholder="NHS Number (XXX XXX XXXX)"
-        className={`${className} ${isValid ? 'border-green-500 dark:border-green-700' : ''} ${isInvalid ? 'border-red-500 dark:border-red-700' : ''}`}
-        maxLength={12} // Allow for 10 digits plus 2 spaces
-      />
+    <div className="space-y-2 relative">
+      <div className="relative">
+        <Input
+          type="text"
+          value={value}
+          onChange={handleChange}
+          disabled={disabled}
+          placeholder="NHS Number (XXX XXX XXXX)"
+          className={`${className} pr-10 font-mono ${
+            isValid ? 'border-green-500 dark:border-green-600 focus-visible:ring-green-500 dark:focus-visible:ring-green-600' : 
+            isInvalid ? 'border-red-500 dark:border-red-600 focus-visible:ring-red-500 dark:focus-visible:ring-red-600' : 
+            'border-input'
+          }`}
+          maxLength={12} // Allow for 10 digits plus 2 spaces
+          aria-invalid={isInvalid}
+          aria-describedby={isInvalid ? "nhs-number-error" : isValid ? "nhs-number-valid" : undefined}
+        />
+        
+        {isValid && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500 dark:text-green-400">
+            <Check size={16} />
+          </div>
+        )}
+        
+        {isInvalid && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500 dark:text-red-400">
+            <AlertCircle size={16} />
+          </div>
+        )}
+      </div>
       
       {isInvalid && (
-        <p className="text-xs text-red-500 dark:text-red-400">
+        <p id="nhs-number-error" className="text-xs text-red-500 dark:text-red-400 flex items-center gap-1">
+          <AlertCircle size={12} />
           Invalid NHS number - please check and correct
         </p>
       )}
       
       {isValid && (
-        <p className="text-xs text-green-500 dark:text-green-400">
+        <p id="nhs-number-valid" className="text-xs text-green-500 dark:text-green-400 flex items-center gap-1">
+          <Check size={12} />
           Valid NHS number
         </p>
       )}
       
       {!isComplete && !isInvalid && value && (
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-muted-foreground">
           NHS number should contain 10 digits
         </p>
       )}
