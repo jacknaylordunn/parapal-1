@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,62 +7,141 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ruler, Droplet, AlertTriangle, Info } from 'lucide-react'; // Changed DropletHalf to Droplet
+import { Ruler, Droplet, AlertTriangle, Info } from 'lucide-react'; 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // SVG image components for the body diagrams
-const BodyDiagramAdult = () => (
+const BodyDiagramAdult = ({ selectedRegions, toggleRegion }) => (
   <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" className="max-h-96 w-full">
     {/* Front of body */}
     <g>
       {/* Head - 9% */}
-      <circle cx="200" cy="50" r="40" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="head" data-value="9" />
+      <circle 
+        cx="200" cy="50" r="40" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('head') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="head" 
+        data-value="9"
+        onClick={() => toggleRegion('head')}
+      />
       
       {/* Torso - 18% (front half = 9%) */}
-      <rect x="160" y="100" width="80" height="150" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="torso-front" data-value="9" />
+      <rect 
+        x="160" y="100" width="80" height="150" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('torso-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="torso-front" 
+        data-value="9"
+        onClick={() => toggleRegion('torso-front')}
+      />
       
       {/* Left arm - 9% (front half = 4.5%) */}
-      <rect x="110" y="100" width="40" height="150" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="left-arm-front" data-value="4.5" />
+      <rect 
+        x="110" y="100" width="40" height="150" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="left-arm-front" 
+        data-value="4.5"
+        onClick={() => toggleRegion('left-arm-front')}
+      />
       
       {/* Right arm - 9% (front half = 4.5%) */}
-      <rect x="250" y="100" width="40" height="150" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="right-arm-front" data-value="4.5" />
+      <rect 
+        x="250" y="100" width="40" height="150" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="right-arm-front" 
+        data-value="4.5"
+        onClick={() => toggleRegion('right-arm-front')}
+      />
       
       {/* Left leg - 18% (front half = 9%) */}
-      <rect x="160" y="260" width="35" height="180" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="left-leg-front" data-value="9" />
+      <rect 
+        x="160" y="260" width="35" height="180" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="left-leg-front" 
+        data-value="9"
+        onClick={() => toggleRegion('left-leg-front')}
+      />
       
       {/* Right leg - 18% (front half = 9%) */}
-      <rect x="205" y="260" width="35" height="180" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="right-leg-front" data-value="9" />
+      <rect 
+        x="205" y="260" width="35" height="180" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="right-leg-front" 
+        data-value="9"
+        onClick={() => toggleRegion('right-leg-front')}
+      />
       
       {/* Genitals - 1% */}
-      <rect x="180" y="250" width="40" height="10" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="genitals" data-value="1" />
+      <rect 
+        x="180" y="250" width="40" height="10" 
+        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('genitals') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+        data-region="genitals" 
+        data-value="1"
+        onClick={() => toggleRegion('genitals')}
+      />
     </g>
     
     <text x="200" y="470" textAnchor="middle" className="text-xs font-bold">Front View</text>
   </svg>
 );
 
-const BodyDiagramChild = () => (
+const BodyDiagramChild = ({ selectedRegions, toggleRegion }) => (
   <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" className="max-h-96 w-full">
     {/* Similar to adult but with different proportions */}
     {/* Head - 18% (larger proportion for children) */}
-    <circle cx="200" cy="50" r="45" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="head" data-value="18" />
+    <circle 
+      cx="200" cy="50" r="45" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('head') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="head" 
+      data-value="18"
+      onClick={() => toggleRegion('head')}
+    />
     
     {/* Torso - 18% (front half = 9%) */}
-    <rect x="160" y="100" width="80" height="120" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="torso-front" data-value="9" />
+    <rect 
+      x="160" y="100" width="80" height="120" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('torso-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="torso-front" 
+      data-value="9"
+      onClick={() => toggleRegion('torso-front')}
+    />
     
     {/* Left arm - 9% (front half = 4.5%) */}
-    <rect x="120" y="100" width="30" height="120" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="left-arm-front" data-value="4.5" />
+    <rect 
+      x="120" y="100" width="30" height="120" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="left-arm-front" 
+      data-value="4.5"
+      onClick={() => toggleRegion('left-arm-front')}
+    />
     
     {/* Right arm - 9% (front half = 4.5%) */}
-    <rect x="250" y="100" width="30" height="120" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="right-arm-front" data-value="4.5" />
+    <rect 
+      x="250" y="100" width="30" height="120" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="right-arm-front" 
+      data-value="4.5"
+      onClick={() => toggleRegion('right-arm-front')}
+    />
     
     {/* Left leg - 14% (front half = 7%) */}
-    <rect x="160" y="230" width="35" height="150" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="left-leg-front" data-value="7" />
+    <rect 
+      x="160" y="230" width="35" height="150" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="left-leg-front" 
+      data-value="7"
+      onClick={() => toggleRegion('left-leg-front')}
+    />
     
     {/* Right leg - 14% (front half = 7%) */}
-    <rect x="205" y="230" width="35" height="150" className="stroke-gray-700 stroke-2 fill-white hover:fill-gray-200 cursor-pointer" data-region="right-leg-front" data-value="7" />
+    <rect 
+      x="205" y="230" width="35" height="150" 
+      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
+      data-region="right-leg-front" 
+      data-value="7"
+      onClick={() => toggleRegion('right-leg-front')}
+    />
     
     <text x="200" y="430" textAnchor="middle" className="text-xs font-bold">Child View</text>
   </svg>
@@ -186,12 +265,21 @@ const BurnsCalculator = () => {
   return (
     <div className="container mx-auto py-6">
       {/* Header section */}
-      <div className="flex items-center mb-8">
-        <Ruler size={32} className="text-nhs-orange mr-4" />
-        <div>
-          <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Burns Calculator</h1>
-          <p className="text-gray-600 dark:text-gray-400">Total Body Surface Area (TBSA) Assessment</p>
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center">
+          <Ruler size={32} className="text-nhs-orange mr-4" />
+          <div>
+            <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Burns Calculator</h1>
+            <p className="text-gray-600 dark:text-gray-400">Total Body Surface Area (TBSA) Assessment</p>
+          </div>
         </div>
+        <Button variant="outline" onClick={() => window.history.back()} className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left">
+            <path d="m12 19-7-7 7-7"/>
+            <path d="M19 12H5"/>
+          </svg>
+          Back
+        </Button>
       </div>
       
       <Alert className="mb-6 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
@@ -253,8 +341,8 @@ const BurnsCalculator = () => {
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Body Diagram</Label>
                     <div className="border rounded-md p-4 bg-gray-50 dark:bg-gray-800">
-                      {ageGroup === 'adult' && <BodyDiagramAdult />}
-                      {(ageGroup === 'child' || ageGroup === 'infant') && <BodyDiagramChild />}
+                      {ageGroup === 'adult' && <BodyDiagramAdult selectedRegions={selectedRegions} toggleRegion={toggleRegion} />}
+                      {(ageGroup === 'child' || ageGroup === 'infant') && <BodyDiagramChild selectedRegions={selectedRegions} toggleRegion={toggleRegion} />}
                       <p className="text-xs text-center text-gray-500 mt-2">
                         Tap on diagram to select burned regions
                       </p>
@@ -267,12 +355,10 @@ const BurnsCalculator = () => {
                       <div className="space-y-2">
                         {burnAreas[ageGroup].map((area) => (
                           <div key={area.id} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
+                            <Checkbox
                               id={area.id}
-                              className="h-5 w-5 rounded border-gray-300"
                               checked={selectedRegions.includes(area.id)}
-                              onChange={() => toggleRegion(area.id)}
+                              onCheckedChange={() => toggleRegion(area.id)}
                             />
                             <Label htmlFor={area.id} className="text-sm">
                               {area.name} ({area.value}%)
@@ -331,7 +417,7 @@ const BurnsCalculator = () => {
                   {fluidRequirement !== null && (
                     <div className="space-y-2">
                       <h3 className="font-medium flex items-center">
-                        <Droplet className="mr-2 text-blue-600" size={18} /> {/* Changed DropletHalf to Droplet */}
+                        <Droplet className="mr-2 text-blue-600" size={18} />
                         Fluid Resuscitation (Parkland Formula)
                       </h3>
                       <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md border border-blue-200 dark:border-blue-800">

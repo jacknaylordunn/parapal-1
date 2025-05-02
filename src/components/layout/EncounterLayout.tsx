@@ -1,5 +1,5 @@
 
-import { Outlet, NavLink, useParams } from "react-router-dom";
+import { Outlet, NavLink, useParams, Link } from "react-router-dom";
 import { 
   User,
   Activity,
@@ -8,15 +8,25 @@ import {
   Share2,
   Home,
   X,
-  Clock
+  Clock,
+  ChevronLeft,
+  Menu,
+  Settings
 } from "lucide-react";
 import { useEncounter } from "../../contexts/EncounterContext";
 import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const EncounterLayout = () => {
   const { id } = useParams<{ id: string }>();
   const { activeEncounter, endEncounter } = useEncounter();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   // Calculate elapsed time since encounter started
   useEffect(() => {
@@ -52,65 +62,139 @@ const EncounterLayout = () => {
   
   // Navigation items for the encounter
   const navItems = [
-    { to: `/encounter/${id}/patient`, icon: <User size={24} />, label: "Patient" },
-    { to: `/encounter/${id}/vitals`, icon: <Activity size={24} />, label: "Vitals" },
-    { to: `/encounter/${id}/history`, icon: <FileText size={24} />, label: "History" },
-    { to: `/encounter/${id}/guidance`, icon: <BookOpen size={24} />, label: "Guidance" },
-    { to: `/encounter/${id}/handover`, icon: <Share2 size={24} />, label: "Handover" }
+    { to: `/encounter/${id}/patient`, icon: <User size={20} />, label: "Patient" },
+    { to: `/encounter/${id}/vitals`, icon: <Activity size={20} />, label: "Vitals" },
+    { to: `/encounter/${id}/history`, icon: <FileText size={20} />, label: "History" },
+    { to: `/encounter/${id}/guidance`, icon: <BookOpen size={20} />, label: "Guidance" },
+    { to: `/encounter/${id}/handover`, icon: <Share2 size={20} />, label: "Handover" }
   ];
+
+  // Function to get patient name from encounter
+  const getPatientName = () => {
+    if (!activeEncounter || !activeEncounter.patientDetails) {
+      return "Unknown Patient";
+    }
+    
+    const { firstName, lastName } = activeEncounter.patientDetails;
+    
+    if (firstName && lastName) {
+      return `${firstName} ${lastName}`;
+    } else if (activeEncounter.isUnknownPatient) {
+      return "Unknown Patient";
+    } else {
+      return "New Patient";
+    }
+  };
+  
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Timer display */}
+      <div className="text-center mb-4 font-mono p-2 bg-gray-100 dark:bg-gray-700 rounded-md flex justify-center items-center">
+        <Clock size={18} className="mr-2 text-nhs-blue dark:text-nhs-light-blue" />
+        <span className="font-semibold">{elapsedTime}</span>
+      </div>
+      
+      {/* Patient info */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mb-4">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Patient</h3>
+        <p className="font-semibold text-lg truncate">{getPatientName()}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Incident: {activeEncounter?.incidentNumber || 'Not Assigned'}
+        </p>
+      </div>
+      
+      {/* Navigation */}
+      <nav className="space-y-1 flex-1 mb-4">
+        <Link 
+          to="/" 
+          className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          <Home size={20} className="mr-3" /> Dashboard
+        </Link>
+        
+        <hr className="my-2 border-gray-200 dark:border-gray-700" />
+        
+        {navItems.map(item => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className={({ isActive }) => 
+              `flex items-center p-2 rounded-md ${
+                isActive 
+                  ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' 
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`
+            }
+          >
+            <span className="w-7">{item.icon}</span>
+            <span className="ml-2">{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+      
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={handleEndEncounter}
+          className="w-full flex items-center justify-center px-4 py-2 bg-nhs-red hover:bg-red-700 text-white font-semibold rounded-md transition-colors"
+        >
+          <X size={18} className="mr-2" /> End Encounter
+        </button>
+      </div>
+    </div>
+  );
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-4">
-      {/* Sidebar/Bottom Navigation */}
-      <aside className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2">
-        {/* Timer display */}
-        <div className="text-center mb-4 font-mono p-2 bg-gray-100 dark:bg-gray-700 rounded-md flex justify-center items-center">
-          <Clock size={18} className="mr-2 text-nhs-blue dark:text-nhs-light-blue" />
-          <span className="font-semibold">{elapsedTime}</span>
+    <div className="container mx-auto px-4 py-4">
+      {/* Top navigation bar - visible on all devices */}
+      <div className="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
+        {/* Mobile menu button */}
+        <div className="md:hidden">
+          <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu size={24} />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[270px] sm:w-[300px] p-4">
+              <SidebarContent />
+            </SheetContent>
+          </Sheet>
         </div>
-        
-        {/* Navigation */}
-        <nav className="space-y-2 mb-4">
-          <NavLink 
-            to="/" 
-            className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700"
-          >
-            <Home size={24} className="mr-2" /> Dashboard
-          </NavLink>
-          
-          <hr className="my-2 border-gray-200 dark:border-gray-700" />
-          
-          {navItems.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) => 
-                `flex items-center p-2 rounded-md ${
-                  isActive 
-                    ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' 
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`
-              }
-            >
-              {item.icon}
-              <span className="ml-2">{item.label}</span>
-            </NavLink>
-          ))}
-        </nav>
-        
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={handleEndEncounter}
-            className="w-full flex items-center justify-center px-4 py-2 bg-nhs-red hover:bg-red-700 text-white font-semibold rounded-md transition-colors"
-          >
-            <X size={18} className="mr-2" /> End Encounter
-          </button>
+
+        {/* Back to dashboard button - visible on all devices */}
+        <Link to="/" className="flex items-center text-nhs-blue">
+          <ChevronLeft size={20} className="mr-1" />
+          <span className="hidden sm:inline">Back to Dashboard</span>
+          <span className="sm:hidden">Dashboard</span>
+        </Link>
+
+        {/* Current section indicator */}
+        <div className="flex items-center">
+          <span className="font-medium">Patient Encounter</span>
+          <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+            Active
+          </span>
         </div>
-      </aside>
-      
-      {/* Main Content */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
-        <Outlet />
+
+        {/* Timer - visible on mobile */}
+        <div className="flex md:hidden items-center font-mono text-sm">
+          <Clock size={16} className="mr-1 text-nhs-blue" />
+          <span>{elapsedTime.substring(0, 5)}</span>
+        </div>
+      </div>
+
+      {/* Main content area with sidebar */}
+      <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-4">
+        {/* Sidebar - hidden on mobile */}
+        <aside className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-md p-3">
+          <SidebarContent />
+        </aside>
+        
+        {/* Main Content */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

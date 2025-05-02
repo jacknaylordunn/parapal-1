@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, PatientHistory, PatientAllergy, PatientMedication } from '../../lib/db';
 import { Save, Plus, Trash, Edit, X, Check } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const HistoryPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +30,9 @@ const HistoryPage = () => {
   
   const [showAddMedicationModal, setShowAddMedicationModal] = useState(false);
   const [editingMedicationId, setEditingMedicationId] = useState<number | null>(null);
+  
+  const [hasNKDA, setHasNKDA] = useState(false);
+  const [hasNoMeds, setHasNoMeds] = useState(false);
 
   // Load patient history on component mount
   useEffect(() => {
@@ -53,6 +56,10 @@ const HistoryPage = () => {
             allergies: allergies || [],
             medications: medications || []
           });
+          
+          // Set the checkbox states based on data
+          setHasNKDA(allergies.length === 0);
+          setHasNoMeds(medications.length === 0);
         }
       } catch (error) {
         console.error('Error loading patient history:', error);
@@ -149,8 +156,43 @@ const HistoryPage = () => {
     // PLACEHOLDER: Speech-to-text implementation would go here
   };
   
+  // Handle NKDA checkbox
+  const handleNKDAChange = (checked: boolean) => {
+    setHasNKDA(checked);
+    
+    if (checked) {
+      // Clear allergies if NKDA is checked
+      setPatientHistory({
+        ...patientHistory,
+        allergies: []
+      });
+      // Clear allergies from database
+      db.allergies.clear()
+        .catch(err => console.error('Error clearing allergies:', err));
+    }
+  };
+  
+  // Handle No Medications checkbox
+  const handleNoMedsChange = (checked: boolean) => {
+    setHasNoMeds(checked);
+    
+    if (checked) {
+      // Clear medications if "No Regular Meds" is checked
+      setPatientHistory({
+        ...patientHistory,
+        medications: []
+      });
+      // Clear medications from database
+      db.medications.clear()
+        .catch(err => console.error('Error clearing medications:', err));
+    }
+  };
+  
   // Add or edit an allergy
   const saveAllergy = (allergy: PatientAllergy) => {
+    // Uncheck NKDA when adding an allergy
+    setHasNKDA(false);
+    
     if (editingAllergyId) {
       // Update existing allergy
       setPatientHistory({
@@ -182,10 +224,16 @@ const HistoryPage = () => {
   
   // Delete an allergy
   const deleteAllergy = (id: number) => {
+    const updatedAllergies = patientHistory.allergies.filter(a => a.id !== id);
     setPatientHistory({
       ...patientHistory,
-      allergies: patientHistory.allergies.filter(a => a.id !== id)
+      allergies: updatedAllergies
     });
+    
+    // If no allergies left, set NKDA to true
+    if (updatedAllergies.length === 0) {
+      setHasNKDA(true);
+    }
     
     // Delete from database
     db.allergies.delete(id)
@@ -194,6 +242,9 @@ const HistoryPage = () => {
   
   // Add or edit a medication
   const saveMedication = (medication: PatientMedication) => {
+    // Uncheck No Regular Meds when adding a medication
+    setHasNoMeds(false);
+    
     if (editingMedicationId) {
       // Update existing medication
       setPatientHistory({
@@ -225,10 +276,16 @@ const HistoryPage = () => {
   
   // Delete a medication
   const deleteMedication = (id: number) => {
+    const updatedMedications = patientHistory.medications.filter(m => m.id !== id);
     setPatientHistory({
       ...patientHistory,
-      medications: patientHistory.medications.filter(m => m.id !== id)
+      medications: updatedMedications
     });
+    
+    // If no medications left, set No Regular Meds to true
+    if (updatedMedications.length === 0) {
+      setHasNoMeds(true);
+    }
     
     // Delete from database
     db.medications.delete(id)
@@ -380,26 +437,16 @@ const HistoryPage = () => {
         <div className="space-y-4 pl-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <label className="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={patientHistory.allergies.length === 0}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      // Clear allergies if NKDA is checked
-                      setPatientHistory({
-                        ...patientHistory,
-                        allergies: []
-                      });
-                      // Clear allergies from database
-                      db.allergies.clear()
-                        .catch(err => console.error('Error clearing allergies:', err));
-                    }
-                  }}
-                  className="form-checkbox h-5 w-5 text-nhs-blue"
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="nkda"
+                  checked={hasNKDA}
+                  onCheckedChange={(checked) => handleNKDAChange(!!checked)}
                 />
-                <span className="ml-2">No Known Drug Allergies (NKDA)</span>
-              </label>
+                <label htmlFor="nkda" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  No Known Drug Allergies (NKDA)
+                </label>
+              </div>
             </div>
             
             <button
@@ -408,8 +455,8 @@ const HistoryPage = () => {
                 setEditingAllergyId(null);
                 setShowAddAllergyModal(true);
               }}
-              disabled={patientHistory.allergies.length === 0 && patientHistory.allergies.length === 0}
-              className="flex items-center px-3 py-1 bg-nhs-blue hover:bg-nhs-dark-blue text-white rounded-md"
+              disabled={hasNKDA}
+              className={`flex items-center px-3 py-1 bg-nhs-blue hover:bg-nhs-dark-blue text-white rounded-md ${hasNKDA ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Plus size={16} className="mr-1" />
               Add Allergy
@@ -493,26 +540,16 @@ const HistoryPage = () => {
         <div className="space-y-4 pl-2">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-4">
-              <label className="inline-flex items-center">
-                <input
-                  type="checkbox"
-                  checked={patientHistory.medications.length === 0}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      // Clear medications if "No Regular Meds" is checked
-                      setPatientHistory({
-                        ...patientHistory,
-                        medications: []
-                      });
-                      // Clear medications from database
-                      db.medications.clear()
-                        .catch(err => console.error('Error clearing medications:', err));
-                    }
-                  }}
-                  className="form-checkbox h-5 w-5 text-nhs-blue"
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="noMeds"
+                  checked={hasNoMeds}
+                  onCheckedChange={(checked) => handleNoMedsChange(!!checked)}
                 />
-                <span className="ml-2">No Regular Medications</span>
-              </label>
+                <label htmlFor="noMeds" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  No Regular Medications
+                </label>
+              </div>
             </div>
             
             <button
@@ -521,8 +558,8 @@ const HistoryPage = () => {
                 setEditingMedicationId(null);
                 setShowAddMedicationModal(true);
               }}
-              disabled={patientHistory.medications.length === 0 && patientHistory.medications.length === 0}
-              className="flex items-center px-3 py-1 bg-nhs-blue hover:bg-nhs-dark-blue text-white rounded-md"
+              disabled={hasNoMeds}
+              className={`flex items-center px-3 py-1 bg-nhs-blue hover:bg-nhs-dark-blue text-white rounded-md ${hasNoMeds ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Plus size={16} className="mr-1" />
               Add Medication
@@ -673,16 +710,21 @@ const HistoryPage = () => {
         
         <div className="space-y-4 pl-2">
           <div className="flex items-center space-x-4">
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                name="safeguardingConcerns"
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="safeguardingConcerns"
                 checked={patientHistory.safeguardingConcerns || false}
-                onChange={handleInputChange}
-                className="form-checkbox h-5 w-5 text-red-600"
+                onCheckedChange={(checked) => {
+                  setPatientHistory({
+                    ...patientHistory,
+                    safeguardingConcerns: !!checked
+                  });
+                }}
               />
-              <span className="ml-2 font-medium">Safeguarding concerns noted</span>
-            </label>
+              <label htmlFor="safeguardingConcerns" className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Safeguarding concerns noted
+              </label>
+            </div>
           </div>
           
           {patientHistory.safeguardingConcerns && (
