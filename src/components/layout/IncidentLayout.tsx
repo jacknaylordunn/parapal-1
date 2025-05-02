@@ -1,3 +1,4 @@
+
 import { Outlet, NavLink, useParams, Link, useNavigate } from "react-router-dom";
 import { User, Activity, FileText, BookOpen, Share2, Home, X, Clock, ChevronLeft, Menu, Settings, Save, Trash2 } from "lucide-react";
 import { useIncident } from "../../contexts/IncidentContext";
@@ -155,9 +156,11 @@ const IncidentLayout = () => {
       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mb-4">
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Patient</h3>
         <p className="font-semibold text-lg truncate">{getPatientName()}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Incident: {activeIncident?.incidentNumber || 'Not Assigned'}
-        </p>
+        <div className="flex items-center mt-1">
+          <span className="text-xs font-medium bg-nhs-blue text-white dark:text-nhs-light-blue px-2 py-0.5 rounded">
+            {activeIncident?.incidentNumber || 'Not Assigned'}
+          </span>
+        </div>
       </div>
       
       {/* Navigation */}
@@ -205,17 +208,22 @@ const IncidentLayout = () => {
 
         {/* Back to dashboard button - visible on all devices */}
         <Link to="/" onClick={handleReturnToDashboard} className="flex items-center text-nhs-blue">
-          
-          
+          <ChevronLeft size={20} className="mr-1" />
+          <span className="hidden sm:inline">Back to Dashboard</span>
           <span className="sm:hidden">Dashboard</span>
         </Link>
 
         {/* Current section indicator */}
         <div className="flex items-center">
           <span className="font-medium">Patient Incident</span>
-          <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
-            Active
-          </span>
+          <div className="flex items-center ml-2">
+            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+              Active
+            </span>
+            <span className="ml-2 bg-nhs-blue text-white text-xs font-medium px-2.5 py-0.5 rounded">
+              {activeIncident?.incidentNumber || 'Not Assigned'}
+            </span>
+          </div>
         </div>
 
         {/* Timer - visible on mobile */}
