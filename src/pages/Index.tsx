@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const Index = () => {
   const { activeEncounter, isLoading } = useEncounter();
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const [isInitializing, setIsInitializing] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -88,37 +88,37 @@ const Index = () => {
           title="Patient Assessment"
           icon={<User size={32} className="text-nhs-blue" />}
           description="Record patient demographics and clinical observations"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
         <FeatureCard 
           title="Vital Signs"
           icon={<Activity size={32} className="text-nhs-blue" />}
           description="Track patient vitals and calculate NEWS2 scores"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
         <FeatureCard 
           title="Patient History"
           icon={<FileText size={32} className="text-nhs-blue" />}
           description="Document medical history, medications, and allergies"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
         <FeatureCard 
           title="Clinical Guidance"
           icon={<BookOpen size={32} className="text-nhs-blue" />}
           description="Access JRCALC guidelines and clinical tools"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
         <FeatureCard 
           title="Handover"
           icon={<Share2 size={32} className="text-nhs-blue" />}
           description="Generate ATMIST handover reports"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
         <FeatureCard 
           title="Time Tracking"
           icon={<Clock size={32} className="text-nhs-blue" />}
           description="Automatically log timestamps for documentation"
-          theme={theme}
+          resolvedTheme={resolvedTheme}
         />
       </div>
       
@@ -140,12 +140,12 @@ const FeatureCard = ({
   title, 
   icon, 
   description, 
-  theme 
+  resolvedTheme 
 }: { 
   title: string, 
   icon: React.ReactNode, 
   description: string,
-  theme: 'light' | 'dark'
+  resolvedTheme: 'dark' | 'light'
 }) => {
   return (
     <div className="clinical-card flex flex-col items-center p-6 text-center">
