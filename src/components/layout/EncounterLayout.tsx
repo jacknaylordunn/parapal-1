@@ -1,4 +1,3 @@
-
 import { Outlet, NavLink, useParams, Link, useNavigate } from "react-router-dom";
 import { 
   User,
@@ -307,7 +306,7 @@ const EncounterLayout = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteEncounter} variant="destructive">
+            <AlertDialogAction onClick={confirmDeleteEncounter} className="bg-destructive hover:bg-destructive/90">
               Delete Permanently
             </AlertDialogAction>
           </AlertDialogFooter>
