@@ -5,14 +5,14 @@ import { Menu, X, Home, UserRound, BookText, Calculator, Settings as SettingsIco
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { useEncounter } from '@/contexts/EncounterContext';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MainLayout = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { theme, resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
   const { activeEncounter } = useEncounter();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -126,7 +126,7 @@ const MainLayout = () => {
                 <div className="text-sm">
                   <span className="block font-medium">Return to Active Encounter</span>
                   <span className="block text-xs opacity-80">
-                    {activeEncounter.patientName || 'Unknown Patient'}
+                    {activeEncounter.patientDetails?.firstName || 'Unknown'} {activeEncounter.patientDetails?.lastName || 'Patient'}
                   </span>
                 </div>
               </div>
