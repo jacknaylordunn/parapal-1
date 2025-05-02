@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, PatientEncounter, VitalSignReading, PatientHistory } from '../../lib/db';
@@ -15,10 +16,10 @@ import { Button } from '@/components/ui/button';
 
 const HandoverPage = () => {
   const { id } = useParams<{ id: string }>();
-  const encounterId = parseInt(id || '0');
+  const incidentId = parseInt(id || '0');
   const { toast } = useToast();
   
-  const [encounter, setEncounter] = useState<PatientEncounter | null>(null);
+  const [incident, setIncident] = useState<PatientEncounter | null>(null);
   const [vitalSigns, setVitalSigns] = useState<VitalSignReading[]>([]);
   const [patientHistory, setPatientHistory] = useState<PatientHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,20 +27,20 @@ const HandoverPage = () => {
   const [preAlertType, setPreAlertType] = useState<string | null>(null);
   const [showPreAlertDialog, setShowPreAlertDialog] = useState(false);
   
-  // Load encounter data
+  // Load incident data
   useEffect(() => {
-    const loadEncounterData = async () => {
-      if (!encounterId) return;
+    const loadIncidentData = async () => {
+      if (!incidentId) return;
       
       try {
-        // Load encounter
-        const encounterData = await db.encounters.get(encounterId);
-        setEncounter(encounterData || null);
+        // Load incident
+        const incidentData = await db.encounters.get(incidentId);
+        setIncident(incidentData || null);
         
         // Load vital signs
         const vitals = await db.vitalSigns
           .where('encounterId')
-          .equals(encounterId)
+          .equals(incidentId)
           .reverse()
           .sortBy('timestamp');
         
@@ -48,7 +49,7 @@ const HandoverPage = () => {
         // Load patient history
         const history = await db.patientHistories
           .where('encounterId')
-          .equals(encounterId)
+          .equals(incidentId)
           .first();
           
         if (history) {
@@ -63,30 +64,30 @@ const HandoverPage = () => {
           });
         }
       } catch (error) {
-        console.error('Error loading encounter data:', error);
+        console.error('Error loading incident data:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
-    loadEncounterData();
-  }, [encounterId]);
+    loadIncidentData();
+  }, [incidentId]);
   
   // Generate ATMIST handover text
   const generateATMIST = (): string => {
-    if (!encounter || vitalSigns.length === 0) {
+    if (!incident || vitalSigns.length === 0) {
       return 'Insufficient data for ATMIST handover';
     }
     
     const latestVitals = vitalSigns[0]; // Most recent vitals
-    const patientDetails = encounter.patientDetails;
+    const patientDetails = incident.patientDetails;
     const patientAge = patientDetails?.age || 'Unknown';
     const patientSex = patientDetails?.sex || 'Unknown';
     
     // Format time since incident
     let timeElapsed = 'Unknown';
-    if (encounter.startTime) {
-      const minutes = Math.floor((new Date().getTime() - new Date(encounter.startTime).getTime()) / 60000);
+    if (incident.startTime) {
+      const minutes = Math.floor((new Date().getTime() - new Date(incident.startTime).getTime()) / 60000);
       timeElapsed = `${minutes} minutes`;
     }
     
@@ -111,7 +112,7 @@ S - SIGNS & SYMPTOMS:
 ${latestVitals.news2Score !== undefined ? `- NEWS2 Score: ${latestVitals.news2Score} (${latestVitals.news2RiskLevel} Risk)` : ''}
 
 T - TREATMENT: 
-- ${encounter.callType} callout
+- ${incident.callType} callout
 ${patientHistory?.allergies && patientHistory.allergies.length > 0 
   ? `- Allergies: ${patientHistory.allergies.map(a => a.allergen).join(', ')}` 
   : '- No known allergies'}
@@ -119,7 +120,7 @@ ${patientHistory?.medications && patientHistory.medications.length > 0
   ? `- Current medications: ${patientHistory.medications.map(m => m.name).join(', ')}` 
   : '- No regular medications'}
 
-Incident Number: ${encounter.incidentNumber}
+Incident Number: ${incident.incidentNumber}
 Handover Time: ${new Date().toLocaleString()}`;
   };
   
@@ -137,7 +138,7 @@ Handover Time: ${new Date().toLocaleString()}`;
       }, 2000);
       
       // Log the event
-      await db.logIncident(encounterId, 'ATMIST Copied to Clipboard');
+      await db.logIncident(incidentId, 'ATMIST Copied to Clipboard');
     } catch (error) {
       console.error('Failed to copy ATMIST:', error);
     }
@@ -149,7 +150,7 @@ Handover Time: ${new Date().toLocaleString()}`;
     alert('PDF generation would be implemented in the full version');
     
     // Log the attempted action
-    db.logIncident(encounterId, 'Attempted to Generate PDF (Placeholder)');
+    db.logIncident(incidentId, 'Attempted to Generate PDF (Placeholder)');
   };
   
   // Handle pre-alert selection
@@ -157,7 +158,7 @@ Handover Time: ${new Date().toLocaleString()}`;
     setPreAlertType(type);
     setShowPreAlertDialog(true);
     // Log the pre-alert action
-    db.logIncident(encounterId, `${type} Pre-alert Initiated`);
+    db.logIncident(incidentId, `${type} Pre-alert Initiated`);
   };
   
   // Submit pre-alert (simulated)
@@ -172,7 +173,7 @@ Handover Time: ${new Date().toLocaleString()}`;
     setShowPreAlertDialog(false);
     
     // Log the action
-    db.logIncident(encounterId, `${preAlertType} Pre-alert Sent`);
+    db.logIncident(incidentId, `${preAlertType} Pre-alert Sent`);
   };
   
   if (isLoading) {
@@ -186,7 +187,7 @@ Handover Time: ${new Date().toLocaleString()}`;
       <div className="clinical-card">
         <h2 className="text-xl font-semibold mb-4">ATMIST Handover</h2>
         
-        {encounter ? (
+        {incident ? (
           <>
             <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-md whitespace-pre-line font-mono text-sm">
               {generateATMIST()}
@@ -222,7 +223,7 @@ Handover Time: ${new Date().toLocaleString()}`;
         ) : (
           <div className="text-center p-8">
             <p className="text-gray-600 dark:text-gray-400">
-              No encounter data available for handover
+              No incident data available for handover
             </p>
           </div>
         )}
@@ -282,12 +283,6 @@ Handover Time: ${new Date().toLocaleString()}`;
             <p className="text-sm text-amber-700 dark:text-amber-400">Major trauma team activation</p>
           </button>
         </div>
-        
-        <div className="mt-6 bg-amber-50 dark:bg-amber-900/30 p-4 rounded-md">
-          <p className="text-amber-800 dark:text-amber-300 text-center">
-            PLACEHOLDER: Pre-alert functionality will be implemented in future versions.
-          </p>
-        </div>
       </div>
       
       <div className="clinical-card">
@@ -339,10 +334,10 @@ Handover Time: ${new Date().toLocaleString()}`;
                 Patient Details
               </h4>
               <p className="text-sm mb-2">
-                <strong>Name:</strong> {encounter?.patientDetails?.firstName} {encounter?.patientDetails?.lastName}
+                <strong>Name:</strong> {incident?.patientDetails?.firstName} {incident?.patientDetails?.lastName}
               </p>
               <p className="text-sm mb-2">
-                <strong>Age:</strong> {encounter?.patientDetails?.age} years
+                <strong>Age:</strong> {incident?.patientDetails?.age} years
               </p>
               <p className="text-sm">
                 <strong>Estimated arrival:</strong> {new Date(Date.now() + 15 * 60000).toLocaleTimeString()} (15 minutes)
