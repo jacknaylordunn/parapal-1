@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, ArrowLeft } from "lucide-react";
-import { calculateNEWS2Score } from "../../lib/clinical-calculations";
+import { calculateNEWS2 } from "../../lib/clinical-calculations";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
