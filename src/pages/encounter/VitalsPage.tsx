@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, VitalSignReading } from '../../lib/db';
@@ -382,10 +381,9 @@ const AddVitalsModal = ({
     
     try {
       if (editingVitalsId) {
-        // Update existing record
+        // Update existing record - removed the lastUpdated property since it's not in the interface
         await db.vitalSigns.update(editingVitalsId, {
-          ...formData,
-          lastUpdated: new Date()
+          ...formData
         });
       } else {
         // Add new record
