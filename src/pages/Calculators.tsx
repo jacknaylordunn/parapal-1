@@ -4,50 +4,54 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Calculator, Activity, Heart, Brain, Weight, Ruler, ChevronRight, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// Dummy data for calculators
+// Calculator data with proper routes
 const calculatorsList = [
   {
     id: 'news2',
     title: 'NEWS2 Score',
     description: 'National Early Warning Score 2',
     icon: <Heart className="text-nhs-red" />,
-    details: 'Calculate deterioration risk based on vital signs'
+    details: 'Calculate deterioration risk based on vital signs',
+    route: '/calculators/news2'
   },
   {
     id: 'gcs',
     title: 'GCS Calculator',
     description: 'Glasgow Coma Scale',
     icon: <Brain className="text-nhs-purple" />,
-    details: 'Assess level of consciousness in a standardized way'
+    details: 'Assess level of consciousness in a standardized way',
+    route: '/calculators/gcs'
   },
   {
-    id: 'weight',
+    id: 'drug-dosage',
     title: 'Drug Dosage',
     description: 'Weight-based medication calculator',
     icon: <Weight className="text-nhs-green" />,
-    details: 'Calculate medication doses based on patient weight'
+    details: 'Calculate medication doses based on patient weight',
+    route: '/calculators/drug-dosage'
   },
   {
     id: 'qrisk',
     title: 'QRISK3',
     description: 'Cardiovascular risk assessment',
     icon: <Activity className="text-nhs-blue" />,
-    details: 'Estimate 10-year risk of heart attack or stroke'
+    details: 'Estimate 10-year risk of heart attack or stroke',
+    route: '/calculators/qrisk'
   },
   {
     id: 'burns',
     title: 'Burns Calculator',
     description: 'Total Body Surface Area',
     icon: <Ruler className="text-nhs-orange" />,
-    details: 'Calculate burn percentage and fluid requirements'
+    details: 'Calculate burn percentage and fluid requirements',
+    route: '/calculators/burns'
   }
 ];
 
 const Calculators = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const navigate = useNavigate();
   
   // Filter calculators based on search term
   const filteredCalculators = calculatorsList.filter(calculator =>
@@ -103,10 +107,12 @@ const Calculators = () => {
               <Button 
                 variant="ghost" 
                 className="w-full flex justify-between items-center"
-                onClick={() => navigate(`/calculators/${calculator.id}`)}
+                asChild
               >
-                <span>Open Calculator</span>
-                <ChevronRight size={16} />
+                <Link to={calculator.route}>
+                  <span>Open Calculator</span>
+                  <ChevronRight size={16} />
+                </Link>
               </Button>
             </CardFooter>
           </Card>
@@ -126,7 +132,7 @@ const Calculators = () => {
       {/* Development notice */}
       <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">
         <p className="font-bold">Development Version</p>
-        <p className="text-sm">These are placeholder calculators for demonstration purposes only.</p>
+        <p className="text-sm">These calculators are fully functional for demonstration purposes.</p>
       </div>
     </div>
   );

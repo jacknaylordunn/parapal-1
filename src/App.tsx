@@ -24,6 +24,16 @@ import HistoryPage from "./pages/encounter/HistoryPage";
 import GuidancePage from "./pages/encounter/GuidancePage";
 import HandoverPage from "./pages/encounter/HandoverPage";
 
+// Calculator pages
+import NEWS2Calculator from "./pages/calculators/NEWS2Calculator";
+import GCSCalculator from "./pages/calculators/GCSCalculator";
+import DrugDosageCalculator from "./pages/calculators/DrugDosageCalculator";
+import QRISKCalculator from "./pages/calculators/QRISKCalculator";
+import BurnsCalculator from "./pages/calculators/BurnsCalculator";
+
+// Guidelines pages
+import GuidelineDetail from "./pages/guidelines/GuidelineDetail";
+
 import { useEffect } from "react";
 import { db, initializeDevData } from "./lib/db";
 
@@ -90,7 +100,13 @@ const App = () => {
                     <Route index element={<Index />} />
                     <Route path="new-encounter" element={<NewEncounterPage />} />
                     <Route path="guidelines" element={<Guidelines />} />
+                    <Route path="guidelines/:categoryId/:guidelineId" element={<GuidelineDetail />} />
                     <Route path="calculators" element={<Calculators />} />
+                    <Route path="calculators/news2" element={<NEWS2Calculator />} />
+                    <Route path="calculators/gcs" element={<GCSCalculator />} />
+                    <Route path="calculators/drug-dosage" element={<DrugDosageCalculator />} />
+                    <Route path="calculators/qrisk" element={<QRISKCalculator />} />
+                    <Route path="calculators/burns" element={<BurnsCalculator />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="settings" element={<Settings />} />
                     
