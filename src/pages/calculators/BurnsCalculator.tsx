@@ -1,508 +1,494 @@
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Ruler, Droplet, AlertTriangle, Info } from 'lucide-react'; 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Ruler, ArrowLeft, Save, FlipHorizontal } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-// SVG image components for the body diagrams
-const BodyDiagramAdult = ({ selectedRegions, toggleRegion }) => (
-  <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" className="max-h-96 w-full">
-    {/* Front of body */}
-    <g>
-      {/* Head - 9% */}
-      <circle 
-        cx="200" cy="50" r="40" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('head') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="head" 
-        data-value="9"
-        onClick={() => toggleRegion('head')}
-      />
-      
-      {/* Torso - 18% (front half = 9%) */}
-      <rect 
-        x="160" y="100" width="80" height="150" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('torso-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="torso-front" 
-        data-value="9"
-        onClick={() => toggleRegion('torso-front')}
-      />
-      
-      {/* Left arm - 9% (front half = 4.5%) */}
-      <rect 
-        x="110" y="100" width="40" height="150" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="left-arm-front" 
-        data-value="4.5"
-        onClick={() => toggleRegion('left-arm-front')}
-      />
-      
-      {/* Right arm - 9% (front half = 4.5%) */}
-      <rect 
-        x="250" y="100" width="40" height="150" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="right-arm-front" 
-        data-value="4.5"
-        onClick={() => toggleRegion('right-arm-front')}
-      />
-      
-      {/* Left leg - 18% (front half = 9%) */}
-      <rect 
-        x="160" y="260" width="35" height="180" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="left-leg-front" 
-        data-value="9"
-        onClick={() => toggleRegion('left-leg-front')}
-      />
-      
-      {/* Right leg - 18% (front half = 9%) */}
-      <rect 
-        x="205" y="260" width="35" height="180" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="right-leg-front" 
-        data-value="9"
-        onClick={() => toggleRegion('right-leg-front')}
-      />
-      
-      {/* Genitals - 1% */}
-      <rect 
-        x="180" y="250" width="40" height="10" 
-        className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('genitals') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-        data-region="genitals" 
-        data-value="1"
-        onClick={() => toggleRegion('genitals')}
-      />
-    </g>
-    
-    <text x="200" y="470" textAnchor="middle" className="text-xs font-bold">Front View</text>
-  </svg>
-);
-
-const BodyDiagramChild = ({ selectedRegions, toggleRegion }) => (
-  <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg" className="max-h-96 w-full">
-    {/* Similar to adult but with different proportions */}
-    {/* Head - 18% (larger proportion for children) */}
-    <circle 
-      cx="200" cy="50" r="45" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('head') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="head" 
-      data-value="18"
-      onClick={() => toggleRegion('head')}
-    />
-    
-    {/* Torso - 18% (front half = 9%) */}
-    <rect 
-      x="160" y="100" width="80" height="120" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('torso-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="torso-front" 
-      data-value="9"
-      onClick={() => toggleRegion('torso-front')}
-    />
-    
-    {/* Left arm - 9% (front half = 4.5%) */}
-    <rect 
-      x="120" y="100" width="30" height="120" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="left-arm-front" 
-      data-value="4.5"
-      onClick={() => toggleRegion('left-arm-front')}
-    />
-    
-    {/* Right arm - 9% (front half = 4.5%) */}
-    <rect 
-      x="250" y="100" width="30" height="120" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-arm-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="right-arm-front" 
-      data-value="4.5"
-      onClick={() => toggleRegion('right-arm-front')}
-    />
-    
-    {/* Left leg - 14% (front half = 7%) */}
-    <rect 
-      x="160" y="230" width="35" height="150" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('left-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="left-leg-front" 
-      data-value="7"
-      onClick={() => toggleRegion('left-leg-front')}
-    />
-    
-    {/* Right leg - 14% (front half = 7%) */}
-    <rect 
-      x="205" y="230" width="35" height="150" 
-      className={`stroke-gray-700 stroke-2 ${selectedRegions.includes('right-leg-front') ? 'fill-nhs-blue/40' : 'fill-white'} hover:fill-gray-200 cursor-pointer`} 
-      data-region="right-leg-front" 
-      data-value="7"
-      onClick={() => toggleRegion('right-leg-front')}
-    />
-    
-    <text x="200" y="430" textAnchor="middle" className="text-xs font-bold">Child View</text>
-  </svg>
-);
+// Body regions with percentages
+const bodyRegions = {
+  adult: {
+    head: 9,
+    neck: 1,
+    chest: 9,
+    abdomen: 9,
+    back: 18,
+    rightArm: 9,
+    leftArm: 9,
+    rightLeg: 18,
+    leftLeg: 18,
+    genitalia: 1
+  },
+  child: { // 1-9 years
+    head: 14,
+    neck: 2,
+    chest: 9,
+    abdomen: 9,
+    back: 18,
+    rightArm: 9,
+    leftArm: 9,
+    rightLeg: 16,
+    leftLeg: 16,
+    genitalia: 1
+  },
+  infant: { // <1 year
+    head: 18,
+    neck: 2,
+    chest: 9,
+    abdomen: 9,
+    back: 18,
+    rightArm: 9,
+    leftArm: 9,
+    rightLeg: 14,
+    leftLeg: 14,
+    genitalia: 1
+  }
+};
 
 const BurnsCalculator = () => {
-  const { toast } = useToast();
-  
-  // State for patient information
-  const [ageGroup, setAgeGroup] = useState<'adult' | 'child' | 'infant'>('adult');
-  const [weight, setWeight] = useState<number | undefined>(undefined);
+  const navigate = useNavigate();
+  const [ageGroup, setAgeGroup] = useState<"adult" | "child" | "infant">("adult");
+  const [weight, setWeight] = useState<number>(70);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-  const [burnPercentage, setBurnPercentage] = useState<number>(0);
-  const [fluidRequirement, setFluidRequirement] = useState<number | null>(null);
-  const [resultsVisible, setResultsVisible] = useState<boolean>(false);
+  const [isFrontView, setIsFrontView] = useState<boolean>(true);
   
-  // Burn areas for manual input
-  const burnAreas = {
-    adult: [
-      { id: 'head', name: 'Head and Neck', value: 9 },
-      { id: 'torso-front', name: 'Torso (Front)', value: 9 },
-      { id: 'torso-back', name: 'Torso (Back)', value: 9 },
-      { id: 'right-arm-front', name: 'Right Arm (Front)', value: 4.5 },
-      { id: 'right-arm-back', name: 'Right Arm (Back)', value: 4.5 },
-      { id: 'left-arm-front', name: 'Left Arm (Front)', value: 4.5 },
-      { id: 'left-arm-back', name: 'Left Arm (Back)', value: 4.5 },
-      { id: 'right-leg-front', name: 'Right Leg (Front)', value: 9 },
-      { id: 'right-leg-back', name: 'Right Leg (Back)', value: 9 },
-      { id: 'left-leg-front', name: 'Left Leg (Front)', value: 9 },
-      { id: 'left-leg-back', name: 'Left Leg (Back)', value: 9 },
-      { id: 'genitals', name: 'Perineum', value: 1 }
-    ],
-    child: [
-      { id: 'head', name: 'Head and Neck', value: 18 },
-      { id: 'torso-front', name: 'Torso (Front)', value: 9 },
-      { id: 'torso-back', name: 'Torso (Back)', value: 9 },
-      { id: 'right-arm-front', name: 'Right Arm (Front)', value: 4.5 },
-      { id: 'right-arm-back', name: 'Right Arm (Back)', value: 4.5 },
-      { id: 'left-arm-front', name: 'Left Arm (Front)', value: 4.5 },
-      { id: 'left-arm-back', name: 'Left Arm (Back)', value: 4.5 },
-      { id: 'right-leg-front', name: 'Right Leg (Front)', value: 7 },
-      { id: 'right-leg-back', name: 'Right Leg (Back)', value: 7 },
-      { id: 'left-leg-front', name: 'Left Leg (Front)', value: 7 },
-      { id: 'left-leg-back', name: 'Left Leg (Back)', value: 7 },
-      { id: 'genitals', name: 'Perineum', value: 1 }
-    ],
-    infant: [
-      { id: 'head', name: 'Head and Neck', value: 21 },
-      { id: 'torso-front', name: 'Torso (Front)', value: 8 },
-      { id: 'torso-back', name: 'Torso (Back)', value: 8 },
-      { id: 'right-arm-front', name: 'Right Arm (Front)', value: 4 },
-      { id: 'right-arm-back', name: 'Right Arm (Back)', value: 4 },
-      { id: 'left-arm-front', name: 'Left Arm (Front)', value: 4 },
-      { id: 'left-arm-back', name: 'Left Arm (Back)', value: 4 },
-      { id: 'right-leg-front', name: 'Right Leg (Front)', value: 6 },
-      { id: 'right-leg-back', name: 'Right Leg (Back)', value: 6 },
-      { id: 'left-leg-front', name: 'Left Leg (Front)', value: 6 },
-      { id: 'left-leg-back', name: 'Left Leg (Back)', value: 6 },
-      { id: 'genitals', name: 'Perineum', value: 1 }
-    ]
-  };
-  
-  // Toggle selection of a burn area
-  const toggleRegion = (regionId: string) => {
-    if (selectedRegions.includes(regionId)) {
-      setSelectedRegions(selectedRegions.filter(id => id !== regionId));
+  // Toggle body region selection
+  const toggleRegion = (region: string) => {
+    if (selectedRegions.includes(region)) {
+      setSelectedRegions(selectedRegions.filter(r => r !== region));
     } else {
-      setSelectedRegions([...selectedRegions, regionId]);
+      setSelectedRegions([...selectedRegions, region]);
     }
   };
   
-  // Calculate total burn percentage
-  const calculateBurnPercentage = () => {
-    if (selectedRegions.length === 0) {
-      toast({
-        title: "No Burn Areas Selected",
-        description: "Please select at least one burn area to calculate TBSA.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Calculate total burn percentage
-    let total = 0;
-    selectedRegions.forEach(regionId => {
-      const region = burnAreas[ageGroup].find(area => area.id === regionId);
-      if (region) {
-        total += region.value;
-      }
-    });
-    
-    // Round to nearest 0.5%
-    const roundedTotal = Math.round(total * 2) / 2;
-    setBurnPercentage(roundedTotal);
-    
-    // Calculate fluid requirements (Parkland Formula) if weight is provided
-    if (weight) {
-      // Parkland formula: 4 mL x weight (kg) x TBSA (%)
-      const fluidRequirementMl = 4 * weight * roundedTotal;
-      setFluidRequirement(fluidRequirementMl);
-    } else {
-      setFluidRequirement(null);
-    }
-    
-    setResultsVisible(true);
-    
-    toast({
-      title: "TBSA Calculation Complete",
-      description: `Estimated burn area: ${roundedTotal}% TBSA`,
-    });
+  // Calculate total TBSA percentage
+  const calculateTBSA = () => {
+    return selectedRegions.reduce((total, region) => {
+      return total + (bodyRegions[ageGroup][region as keyof typeof bodyRegions[typeof ageGroup]] || 0);
+    }, 0);
   };
   
-  // Reset form
-  const resetForm = () => {
-    setSelectedRegions([]);
-    setBurnPercentage(0);
-    setFluidRequirement(null);
-    setResultsVisible(false);
+  // Calculate fluid requirements using Parkland formula
+  const calculateFluidRequirements = () => {
+    const tbsa = calculateTBSA();
+    // Parkland formula: 4 mL × weight (kg) × %TBSA
+    const totalFluid = 4 * weight * tbsa;
+    
+    // First 8 hours: half of the total
+    const firstHalf = totalFluid / 2;
+    // Next 16 hours: remaining half
+    const secondHalf = totalFluid / 2;
+    
+    return {
+      totalFluid,
+      firstHalf,
+      secondHalf
+    };
   };
   
+  const fluidRequirements = calculateFluidRequirements();
+  const tbsaPercentage = calculateTBSA();
+  
+  // Function to toggle between front and back views
+  const toggleBodyView = () => {
+    setIsFrontView(!isFrontView);
+  };
+
   return (
     <div className="container mx-auto py-6">
-      {/* Header section */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between mb-6">
         <div className="flex items-center">
-          <Ruler size={32} className="text-nhs-orange mr-4" />
-          <div>
-            <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Burns Calculator</h1>
-            <p className="text-gray-600 dark:text-gray-400">Total Body Surface Area (TBSA) Assessment</p>
-          </div>
+          <Button variant="outline" onClick={() => navigate('/calculators')} className="mr-2">
+            <ArrowLeft size={16} className="mr-1" /> Back
+          </Button>
+          <h1 className="text-2xl font-bold text-nhs-dark-blue dark:text-white flex items-center">
+            <Ruler className="mr-2" /> Burns Calculator
+          </h1>
         </div>
-        <Button variant="outline" onClick={() => window.history.back()} className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left">
-            <path d="m12 19-7-7 7-7"/>
-            <path d="M19 12H5"/>
-          </svg>
-          Back
-        </Button>
       </div>
-      
-      <Alert className="mb-6 bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800">
-        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <AlertTitle>Important Notice</AlertTitle>
-        <AlertDescription className="text-sm">
-          This calculator is for demonstration purposes only. Always follow your local protocols and guidelines for burn assessment and management. Patients with burns ≥15% TBSA should be considered for specialist burn care.
-        </AlertDescription>
-      </Alert>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column for burn assessment inputs */}
-        <div className="lg:col-span-2">
-          <Card>
-            {/* Card header */}
-            <CardHeader>
-              <CardTitle>Burns Assessment</CardTitle>
-              <CardDescription>Select patient details and affected body areas</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Patient Type Selection */}
-              <div className="space-y-3">
-                <Label className="text-base">Patient Age Group</Label>
-                <div className="flex w-full mb-4">
-                  <Tabs 
-                    defaultValue="adult" 
-                    value={ageGroup} 
-                    onValueChange={(v) => {
-                      setAgeGroup(v as 'adult' | 'child' | 'infant');
-                      resetForm();
-                    }}
-                    className="w-full"
-                  >
-                    <TabsList className="w-full">
-                      <TabsTrigger value="adult" className="flex-1">Adult</TabsTrigger>
-                      <TabsTrigger value="child" className="flex-1">Child (1-10yrs)</TabsTrigger>
-                      <TabsTrigger value="infant" className="flex-1">Infant (&lt;1yr)</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_350px] gap-6">
+        {/* Body Diagram */}
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <CardTitle>Body Surface Area Diagram</CardTitle>
+              <Button variant="outline" size="sm" onClick={toggleBodyView} className="flex items-center">
+                <FlipHorizontal size={16} className="mr-2" />
+                {isFrontView ? 'Show Back' : 'Show Front'}
+              </Button>
+            </div>
+            <CardDescription>Select affected areas on the diagram</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="adult" className="mb-4" onValueChange={(value) => setAgeGroup(value as "adult" | "child" | "infant")}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="adult">Adult</TabsTrigger>
+                <TabsTrigger value="child">Child (1-9y)</TabsTrigger>
+                <TabsTrigger value="infant">Infant (&lt;1y)</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <div className="relative w-full h-[60vh] bg-gray-50 dark:bg-gray-800 border rounded-md overflow-hidden">
+              {/* Interactive Body Diagram */}
+              <div className="flex justify-center h-full">
+                <svg
+                  viewBox="0 0 200 400"
+                  className="h-full max-h-[600px]"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  {/* Body Outline */}
+                  {isFrontView ? (
+                    <>
+                      {/* Head - Front */}
+                      <circle
+                        cx="100"
+                        cy="40"
+                        r="30"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('head') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('head')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      {/* Text label for head */}
+                      <text x="100" y="40" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].head}%
+                      </text>
+                      
+                      {/* Neck - Front */}
+                      <rect
+                        x="90"
+                        y="70"
+                        width="20"
+                        height="15"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('neck') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('neck')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="78" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].neck}%
+                      </text>
+                      
+                      {/* Chest - Front */}
+                      <rect
+                        x="70"
+                        y="85"
+                        width="60"
+                        height="50"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('chest') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('chest')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="110" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].chest}%
+                      </text>
+                      
+                      {/* Abdomen - Front */}
+                      <rect
+                        x="70"
+                        y="135"
+                        width="60"
+                        height="50"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('abdomen') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('abdomen')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="160" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].abdomen}%
+                      </text>
+                      
+                      {/* Genitalia */}
+                      <rect
+                        x="85"
+                        y="185"
+                        width="30"
+                        height="15"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('genitalia') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('genitalia')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="192" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].genitalia}%
+                      </text>
+                      
+                      {/* Right Arm - Front */}
+                      <rect
+                        x="40"
+                        y="85"
+                        width="30"
+                        height="90"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('rightArm') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('rightArm')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="55" y="130" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].rightArm}%
+                      </text>
+                      
+                      {/* Left Arm - Front */}
+                      <rect
+                        x="130"
+                        y="85"
+                        width="30"
+                        height="90"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('leftArm') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('leftArm')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="145" y="130" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].leftArm}%
+                      </text>
+                      
+                      {/* Right Leg - Front */}
+                      <rect
+                        x="70"
+                        y="200"
+                        width="30"
+                        height="150"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('rightLeg') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('rightLeg')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="85" y="275" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].rightLeg / 2}%
+                      </text>
+                      
+                      {/* Left Leg - Front */}
+                      <rect
+                        x="100"
+                        y="200"
+                        width="30"
+                        height="150"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('leftLeg') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('leftLeg')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="115" y="275" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].leftLeg / 2}%
+                      </text>
+                    </>
+                  ) : (
+                    <>
+                      {/* Back View */}
+                      {/* Head - Back */}
+                      <circle
+                        cx="100"
+                        cy="40"
+                        r="30"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('head') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('head')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="40" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].head}%
+                      </text>
+                      
+                      {/* Neck - Back */}
+                      <rect
+                        x="90"
+                        y="70"
+                        width="20"
+                        height="15"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('neck') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('neck')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="78" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].neck}%
+                      </text>
+                      
+                      {/* Back */}
+                      <rect
+                        x="70"
+                        y="85"
+                        width="60"
+                        height="100"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('back') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('back')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="100" y="135" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].back}%
+                      </text>
+                      
+                      {/* Right Arm - Back */}
+                      <rect
+                        x="40"
+                        y="85"
+                        width="30"
+                        height="90"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('rightArm') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('rightArm')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="55" y="130" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].rightArm}%
+                      </text>
+                      
+                      {/* Left Arm - Back */}
+                      <rect
+                        x="130"
+                        y="85"
+                        width="30"
+                        height="90"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('leftArm') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('leftArm')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="145" y="130" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].leftArm}%
+                      </text>
+                      
+                      {/* Right Leg - Back */}
+                      <rect
+                        x="70"
+                        y="200"
+                        width="30"
+                        height="150"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('rightLeg') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('rightLeg')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="85" y="275" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].rightLeg / 2}%
+                      </text>
+                      
+                      {/* Left Leg - Back */}
+                      <rect
+                        x="100"
+                        y="200"
+                        width="30"
+                        height="150"
+                        stroke="black"
+                        strokeWidth="1"
+                        fill={selectedRegions.includes('leftLeg') ? 'rgba(255, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.8)'}
+                        onClick={() => toggleRegion('leftLeg')}
+                        style={{ cursor: 'pointer' }}
+                      />
+                      <text x="115" y="275" textAnchor="middle" dominantBaseline="middle" fontSize="8" pointerEvents="none">
+                        {bodyRegions[ageGroup].leftLeg / 2}%
+                      </text>
+                    </>
+                  )}
+                </svg>
               </div>
-              
-              {/* Patient Weight for Fluid Calculation */}
-              <div className="space-y-2">
-                <Label htmlFor="weight">Patient Weight (kg) - Optional for fluid calculation</Label>
-                <Input
-                  id="weight"
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Calculator Panel */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <label className="text-sm font-medium mb-1 block">Weight (kg)</label>
+                <input
                   type="number"
-                  placeholder="Enter weight in kg"
-                  value={weight ?? ''}
-                  onChange={(e) => setWeight(e.target.value ? Number(e.target.value) : undefined)}
+                  className="w-full border rounded-md px-3 py-2 dark:bg-gray-800 dark:border-gray-700"
+                  value={weight}
+                  onChange={(e) => setWeight(Number(e.target.value))}
                 />
               </div>
-              
-              {/* Body Region Selection */}
-              <div className="pt-2 border-t">
-                <h3 className="font-medium mb-3">Select Burned Areas</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Body Diagram</Label>
-                    <div className="border rounded-md p-4 bg-gray-50 dark:bg-gray-800">
-                      {ageGroup === 'adult' && <BodyDiagramAdult selectedRegions={selectedRegions} toggleRegion={toggleRegion} />}
-                      {(ageGroup === 'child' || ageGroup === 'infant') && <BodyDiagramChild selectedRegions={selectedRegions} toggleRegion={toggleRegion} />}
-                      <p className="text-xs text-center text-gray-500 mt-2">
-                        Tap on diagram to select burned regions
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Manual Selection</Label>
-                    <div className="border rounded-md p-4 h-[24rem] overflow-y-auto">
-                      <div className="space-y-2">
-                        {burnAreas[ageGroup].map((area) => (
-                          <div key={area.id} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={area.id}
-                              checked={selectedRegions.includes(area.id)}
-                              onCheckedChange={() => toggleRegion(area.id)}
-                            />
-                            <Label htmlFor={area.id} className="text-sm">
-                              {area.name} ({area.value}%)
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Selected Regions Summary */}
-              <div className="pt-2 border-t">
-                <h3 className="font-medium mb-3">Selected Regions</h3>
-                <div className="flex flex-wrap gap-2">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Selected Areas</label>
+                <div className="text-sm">
                   {selectedRegions.length > 0 ? (
-                    selectedRegions.map(regionId => {
-                      const region = burnAreas[ageGroup].find(area => area.id === regionId);
-                      return region ? (
-                        <div key={regionId} className="bg-nhs-blue text-white px-2 py-1 rounded-full text-sm">
-                          {region.name} ({region.value}%)
-                        </div>
-                      ) : null;
-                    })
+                    <ul className="list-disc list-inside">
+                      {selectedRegions.map(region => (
+                        <li key={region} className="capitalize">
+                          {region.replace(/([A-Z])/g, ' $1').trim()} - {bodyRegions[ageGroup][region as keyof typeof bodyRegions[typeof ageGroup]]}%
+                        </li>
+                      ))}
+                    </ul>
                   ) : (
-                    <p className="text-gray-500 text-sm">No regions selected</p>
+                    <p className="text-gray-500">No areas selected</p>
                   )}
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-6">
-              <Button variant="outline" onClick={resetForm}>Reset</Button>
-              <Button onClick={calculateBurnPercentage}>Calculate TBSA</Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        {/* Results Area */}
-        <div className="lg:col-span-1">
-          <Card className={resultsVisible ? "border-2 border-nhs-blue" : ""}>
-            <CardHeader>
-              <CardTitle>TBSA Results</CardTitle>
-              <CardDescription>Burn assessment summary</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {resultsVisible ? (
-                <>
-                  <div className="text-center py-4">
-                    <div className="text-6xl font-bold mb-2 text-nhs-blue">{burnPercentage}%</div>
-                    <div className="text-xl font-medium">
-                      Total Body Surface Area
-                    </div>
-                  </div>
-                  
-                  {fluidRequirement !== null && (
-                    <div className="space-y-2">
-                      <h3 className="font-medium flex items-center">
-                        <Droplet className="mr-2 text-blue-600" size={18} />
-                        Fluid Resuscitation (Parkland Formula)
-                      </h3>
-                      <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-md border border-blue-200 dark:border-blue-800">
-                        <p className="font-semibold text-lg">{fluidRequirement} mL</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Total 24-hour fluid</p>
-                        <Separator className="my-2" />
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <p className="font-medium">First 8 hours:</p>
-                            <p>{Math.round(fluidRequirement / 2)} mL</p>
-                          </div>
-                          <div>
-                            <p className="font-medium">Next 16 hours:</p>
-                            <p>{Math.round(fluidRequirement / 2)} mL</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <Alert className={`
-                    ${burnPercentage < 10 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800' : ''}
-                    ${burnPercentage >= 10 && burnPercentage < 20 ? 'bg-amber-50 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800' : ''}
-                    ${burnPercentage >= 20 ? 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800' : ''}
-                  `}>
-                    <AlertTriangle className={`
-                      h-4 w-4
-                      ${burnPercentage < 10 ? 'text-green-600 dark:text-green-400' : ''}
-                      ${burnPercentage >= 10 && burnPercentage < 20 ? 'text-amber-600 dark:text-amber-400' : ''}
-                      ${burnPercentage >= 20 ? 'text-red-600 dark:text-red-400' : ''}
-                    `} />
-                    <AlertTitle>Management Guidance</AlertTitle>
-                    <AlertDescription className="text-sm">
-                      {burnPercentage < 10 && "Minor burn: Consider outpatient management if appropriate."}
-                      {burnPercentage >= 10 && burnPercentage < 20 && "Moderate burn: Consider referral to specialist burn service."}
-                      {burnPercentage >= 20 && "Major burn: Requires specialist burn service. Consider critical care support."}
-                    </AlertDescription>
-                  </Alert>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                  <Ruler className="mb-2" size={32} />
-                  <p>Select burned body regions to calculate TBSA.</p>
-                </div>
-              )}
             </CardContent>
           </Card>
           
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-base">About TBSA Assessment</CardTitle>
+              <CardTitle>Burns Assessment</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-3">
-              <p>
-                The "Rule of Nines" is a method used to estimate the Total Body Surface Area (TBSA) 
-                affected by burns. Different proportions are used for adults and children.
-              </p>
-              <p>
-                <strong>Adult Proportions:</strong>
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>Head and neck: 9%</li>
-                <li>Each arm: 9% (4.5% front, 4.5% back)</li>
-                <li>Each leg: 18% (9% front, 9% back)</li>
-                <li>Torso front: 18% (9% chest, 9% abdomen)</li>
-                <li>Back: 18%</li>
-                <li>Perineum: 1%</li>
-              </ul>
-              <Separator className="my-2" />
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle className="text-xs">Referral Criteria</AlertTitle>
-                <AlertDescription className="text-xs">
-                  Consider specialist burn service referral for:
-                  <ul className="list-disc list-inside mt-1">
-                    <li>Burns &gt;10% TBSA in adults</li>
-                    <li>Burns &gt;5% TBSA in children</li>
-                    <li>Any full thickness burn &gt;5% TBSA</li>
-                    <li>Burns to face, hands, feet, genitalia</li>
-                    <li>Circumferential burns</li>
-                    <li>Inhalation injury</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
+            <CardContent>
+              <div className="mb-2">
+                <div className="flex justify-between">
+                  <span>Total Burn Surface Area:</span>
+                  <span className="font-bold">{tbsaPercentage}%</span>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <h4 className="font-medium mb-1">Burn Classification</h4>
+                <div className="text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded-md">
+                  {tbsaPercentage < 10 ? (
+                    <p className="text-green-600 dark:text-green-400">Minor Burn</p>
+                  ) : tbsaPercentage < 20 ? (
+                    <p className="text-yellow-600 dark:text-yellow-400">Moderate Burn</p>
+                  ) : (
+                    <p className="text-red-600 dark:text-red-400">Major Burn</p>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="font-medium mb-1">Fluid Requirements (Parkland Formula)</h4>
+                <div className="text-sm bg-gray-50 dark:bg-gray-800 p-2 rounded-md space-y-2">
+                  <div className="flex justify-between">
+                    <span>Total 24hr fluid:</span>
+                    <span className="font-bold">{fluidRequirements.totalFluid.toFixed(0)} mL</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>First 8hrs:</span>
+                    <span>{fluidRequirements.firstHalf.toFixed(0)} mL ({(fluidRequirements.firstHalf / 8).toFixed(0)} mL/hr)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Next 16hrs:</span>
+                    <span>{fluidRequirements.secondHalf.toFixed(0)} mL ({(fluidRequirements.secondHalf / 16).toFixed(0)} mL/hr)</span>
+                  </div>
+                </div>
+              </div>
             </CardContent>
+            <CardFooter>
+              <Button className="w-full">
+                <Save size={16} className="mr-2" /> Save Assessment
+              </Button>
+            </CardFooter>
           </Card>
         </div>
       </div>

@@ -1,584 +1,391 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Weight, Pill, AlertCircle, Info, CheckCircle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useToast } from '@/components/ui/use-toast';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Weight, ArrowLeft, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Define the drug type interfaces for better type safety
-interface BaseDrug {
+// Define medication data types
+interface DosageRange {
+  min: number;
+  max: number;
+  unit: string;
+  perWeight?: boolean;
+}
+
+interface Route {
+  name: string;
+  dosages: DosageRange[];
+  notes?: string;
+}
+
+interface Medication {
   id: string;
   name: string;
-  routes: string[];
-  concentration: string;
-  notes: string;
+  category: string;
+  routes: Route[];
+  concentration?: string;
 }
 
-interface AdultDrug extends BaseDrug {
-  dose: string;
-  volume: string;
-}
-
-interface PediatricWeightBasedDrug extends BaseDrug {
-  weightBased: true;
-  dosePerKg: string | Record<string, string>;
-  maxDose: string | Record<string, string>;
-}
-
-interface PediatricAgeBasedDrug extends BaseDrug {
-  weightBased: false;
-  doseByAge: Record<string, string>;
-}
-
-type DrugType = AdultDrug | PediatricWeightBasedDrug | PediatricAgeBasedDrug;
-
-// Drug dosage database
-const drugs: {
-  adult: AdultDrug[];
-  pediatric: (PediatricWeightBasedDrug | PediatricAgeBasedDrug)[];
-} = {
-  adult: [
-    { 
-      id: 'adrenaline',
-      name: 'Adrenaline (Cardiac Arrest)',
-      routes: ['IV'],
-      dose: '1mg',
-      concentration: '1:10,000 (1 mg in 10 mL)',
-      volume: '10 mL',
-      notes: 'Repeat every 3-5 minutes as needed.'
-    },
-    { 
-      id: 'amiodarone',
-      name: 'Amiodarone (Cardiac Arrest)',
-      routes: ['IV'],
-      dose: '300mg initial, 150mg subsequent',
-      concentration: '30 mg/mL',
-      volume: '10 mL initial, 5 mL subsequent',
-      notes: 'After 3 shocks for VF/pVT. Subsequent dose after further 150 mg after 3-5 mins if VF/pVT persists.'
-    },
-    { 
-      id: 'aspirin',
-      name: 'Aspirin (ACS)',
-      routes: ['PO'],
-      dose: '300mg',
-      concentration: 'N/A (tablets)',
-      volume: 'N/A',
-      notes: 'Chewed or dispersed.'
-    },
-    { 
-      id: 'morphine',
-      name: 'Morphine (Pain)',
-      routes: ['IV', 'IM'],
-      dose: '2.5-10 mg IV titrated, 5-15 mg IM',
-      concentration: '10 mg/mL',
-      volume: '0.25-1 mL IV, 0.5-1.5 mL IM',
-      notes: 'Titrate IV dose slowly to response. Consider anti-emetic.'
-    },
-    { 
-      id: 'salbutamol',
-      name: 'Salbutamol (Asthma/COPD)',
-      routes: ['Nebulised'],
-      dose: '5 mg',
-      concentration: '5 mg/2.5 mL',
-      volume: '2.5 mL',
-      notes: 'Can be repeated as needed based on response.'
-    }
-  ],
-  pediatric: [
-    { 
-      id: 'adrenaline_ped',
-      name: 'Adrenaline (Cardiac Arrest)',
-      weightBased: true,
-      routes: ['IV'],
-      dosePerKg: '10 mcg/kg',
-      maxDose: '1 mg',
-      concentration: '1:10,000 (100 mcg/mL)',
-      notes: 'Repeat every 3-5 minutes as needed.'
-    },
-    { 
-      id: 'paracetamol_ped',
-      name: 'Paracetamol',
-      weightBased: true,
-      routes: ['PO', 'IV'],
-      dosePerKg: '15 mg/kg',
-      maxDose: '1000 mg',
-      concentration: '10 mg/mL (oral liquid), 10 mg/mL (IV)',
-      notes: 'Max 4 doses in 24 hours.'
-    },
-    { 
-      id: 'salbutamol_ped',
-      name: 'Salbutamol (Asthma)',
-      weightBased: false,
-      routes: ['Nebulised'],
-      doseByAge: {
-        '<5 years': '2.5 mg',
-        '≥5 years': '5 mg'
+// Example medications data
+const medications: Medication[] = [
+  {
+    id: "paracetamol",
+    name: "Paracetamol",
+    category: "Analgesic",
+    routes: [
+      {
+        name: "Oral",
+        dosages: [
+          { min: 10, max: 15, unit: "mg/kg", perWeight: true },
+          { min: 500, max: 1000, unit: "mg" }
+        ],
+        notes: "Maximum 4g/day for adults. For children, max 60mg/kg/day."
       },
-      concentration: '5 mg/2.5 mL',
-      notes: 'Can be repeated as needed based on response.'
-    },
-    { 
-      id: 'diazepam_ped',
-      name: 'Diazepam (Seizure)',
-      weightBased: true,
-      routes: ['IV', 'PR'],
-      dosePerKg: {
-        'IV': '0.25 mg/kg',
-        'PR': '0.5 mg/kg'
+      {
+        name: "Intravenous",
+        dosages: [
+          { min: 15, max: 15, unit: "mg/kg", perWeight: true },
+          { min: 1000, max: 1000, unit: "mg" }
+        ],
+        notes: "Maximum 4g/day for adults. For children <50kg, max 60mg/kg/day."
+      }
+    ]
+  },
+  {
+    id: "morphine",
+    name: "Morphine",
+    category: "Opioid Analgesic",
+    concentration: "10mg/mL",
+    routes: [
+      {
+        name: "Intravenous",
+        dosages: [
+          { min: 0.1, max: 0.2, unit: "mg/kg", perWeight: true },
+          { min: 2.5, max: 10, unit: "mg" }
+        ],
+        notes: "Titrate to effect. Consider reduced dose in elderly or compromised patients."
       },
-      maxDose: {
-        'IV': '10 mg',
-        'PR': '20 mg'
+      {
+        name: "Intramuscular",
+        dosages: [
+          { min: 0.1, max: 0.2, unit: "mg/kg", perWeight: true },
+          { min: 5, max: 15, unit: "mg" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "salbutamol",
+    name: "Salbutamol",
+    category: "Bronchodilator",
+    routes: [
+      {
+        name: "Nebulizer",
+        dosages: [
+          { min: 2.5, max: 5, unit: "mg" }
+        ],
+        notes: "For acute asthma in adults. 2.5mg for children <5 years."
       },
-      concentration: '5 mg/mL',
-      notes: 'IV administration should be slow. May repeat once after 5 minutes if seizures persist.'
-    }
-  ]
-};
+      {
+        name: "Inhaler",
+        dosages: [
+          { min: 100, max: 200, unit: "mcg" }
+        ],
+        notes: "1-2 puffs as needed, up to 4 times daily."
+      }
+    ]
+  },
+  {
+    id: "adrenaline",
+    name: "Adrenaline (Epinephrine)",
+    category: "Sympathomimetic",
+    concentration: "1:10,000 (100 mcg/mL) or 1:1,000 (1 mg/mL)",
+    routes: [
+      {
+        name: "Intravenous (Cardiac Arrest)",
+        dosages: [
+          { min: 1, max: 1, unit: "mg" }
+        ],
+        notes: "Give 1mg every 3-5 minutes during cardiac arrest."
+      },
+      {
+        name: "Intramuscular (Anaphylaxis)",
+        dosages: [
+          { min: 0.01, max: 0.01, unit: "mg/kg", perWeight: true },
+          { min: 0.3, max: 0.5, unit: "mg" }
+        ],
+        notes: "Max single dose: 0.5mg adults, 0.3mg children."
+      }
+    ]
+  },
+  {
+    id: "amiodarone",
+    name: "Amiodarone",
+    category: "Antiarrhythmic",
+    routes: [
+      {
+        name: "Intravenous (Cardiac Arrest)",
+        dosages: [
+          { min: 5, max: 5, unit: "mg/kg", perWeight: true },
+          { min: 300, max: 300, unit: "mg" }
+        ],
+        notes: "Initial dose 300mg during cardiac arrest, consider further 150mg."
+      },
+      {
+        name: "Intravenous (Arrhythmias)",
+        dosages: [
+          { min: 5, max: 5, unit: "mg/kg", perWeight: true },
+          { min: 300, max: 300, unit: "mg" }
+        ],
+        notes: "Given over 20-60 minutes, then 900mg over 24 hours."
+      }
+    ]
+  }
+];
 
 const DrugDosageCalculator = () => {
-  const { toast } = useToast();
-  
-  // State variables
-  const [patientCategory, setPatientCategory] = useState<'adult' | 'pediatric'>('adult');
-  const [selectedDrug, setSelectedDrug] = useState<string>('');
-  const [weight, setWeight] = useState<number | undefined>(undefined);
-  const [age, setAge] = useState<number | undefined>(undefined);
-  const [selectedRoute, setSelectedRoute] = useState<string>('');
-  const [calculationResults, setCalculationResults] = useState<any>(null);
-  
-  // Get current drug list based on patient category
-  const currentDrugList = drugs[patientCategory];
-  
-  // Get the selected drug object
-  const drugObject = currentDrugList.find(drug => drug.id === selectedDrug);
-  
-  // Handle drug selection
-  const handleDrugSelect = (drugId: string) => {
-    setSelectedDrug(drugId);
-    // Reset route if the selected drug changes
-    setSelectedRoute('');
-    setCalculationResults(null);
-  };
-  
-  // Handle route selection
-  const handleRouteSelect = (route: string) => {
-    setSelectedRoute(route);
-  };
-  
-  // Calculate dosage
-  const calculateDosage = () => {
-    if (!selectedDrug) {
-      toast({
-        title: "No Drug Selected",
-        description: "Please select a drug to calculate the dosage.",
-        variant: "destructive"
-      });
+  const navigate = useNavigate();
+  const [weight, setWeight] = useState<number>(70);
+  const [age, setAge] = useState<number>(40);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedMed, setSelectedMed] = useState<Medication | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState<string>("");
+  const [calculatedDosages, setCalculatedDosages] = useState<{
+    min: number;
+    max: number;
+    unit: string;
+    isPerWeight: boolean;
+  } | null>(null);
+
+  // Filter medications based on search term
+  const filteredMeds = medications.filter(med =>
+    med.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    med.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Calculate dosages when medication, route or patient parameters change
+  useEffect(() => {
+    if (!selectedMed || !selectedRoute || weight <= 0) {
+      setCalculatedDosages(null);
       return;
     }
-    
-    // Find the selected drug
-    const drug = currentDrugList.find(d => d.id === selectedDrug);
-    
-    if (!drug) {
-      toast({
-        title: "Error",
-        description: "Could not find the selected drug information.",
-        variant: "destructive"
-      });
+
+    const routeData = selectedMed.routes.find(r => r.name === selectedRoute);
+    if (!routeData) {
+      setCalculatedDosages(null);
       return;
     }
-    
-    // For pediatric weight-based drugs
-    if (patientCategory === 'pediatric' && 'weightBased' in drug && drug.weightBased) {
-      if (!weight) {
-        toast({
-          title: "Weight Required",
-          description: "Please enter the patient's weight.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Generate results
-      const results = calculatePediatricDose(drug as PediatricWeightBasedDrug, weight, selectedRoute);
-      setCalculationResults(results);
-      
-      toast({
-        title: "Dosage Calculated",
-        description: `${drug.name} dosage calculated for ${weight}kg patient.`,
+
+    // Find appropriate dosage based on weight
+    const weightBasedDosage = routeData.dosages.find(d => d.perWeight);
+    const fixedDosage = routeData.dosages.find(d => !d.perWeight);
+
+    if (weight < 50 && weightBasedDosage) {
+      // Use weight-based for patients under 50kg
+      setCalculatedDosages({
+        min: weightBasedDosage.min * weight,
+        max: weightBasedDosage.max * weight,
+        unit: weightBasedDosage.unit.replace('/kg', ''),
+        isPerWeight: true
       });
-      
-      return;
-    }
-    
-    // For pediatric age-based drugs
-    if (patientCategory === 'pediatric' && 'weightBased' in drug && !drug.weightBased) {
-      if (!age) {
-        toast({
-          title: "Age Required",
-          description: "Please enter the patient's age.",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      // Determine age category
-      let ageCategory;
-      if (age < 5) {
-        ageCategory = '<5 years';
-      } else {
-        ageCategory = '≥5 years';
-      }
-      
-      const ageBasedDrug = drug as PediatricAgeBasedDrug;
-      
-      // Set results
-      setCalculationResults({
-        dose: ageBasedDrug.doseByAge[ageCategory],
-        volume: calculateVolumeFromDose(ageBasedDrug.doseByAge[ageCategory], ageBasedDrug.concentration),
-        concentration: ageBasedDrug.concentration,
-        notes: ageBasedDrug.notes
+    } else if (fixedDosage) {
+      // Use fixed dosage for adults
+      setCalculatedDosages({
+        min: fixedDosage.min,
+        max: fixedDosage.max,
+        unit: fixedDosage.unit,
+        isPerWeight: false
       });
-      
-      toast({
-        title: "Dosage Calculated",
-        description: `${drug.name} dosage calculated for ${age} year old patient.`,
+    } else if (weightBasedDosage) {
+      // Fallback to weight-based if no fixed dosage available
+      setCalculatedDosages({
+        min: weightBasedDosage.min * weight,
+        max: weightBasedDosage.max * weight,
+        unit: weightBasedDosage.unit.replace('/kg', ''),
+        isPerWeight: true
       });
-      
-      return;
     }
-    
-    // For adult drugs
-    const adultDrug = drug as AdultDrug;
-    setCalculationResults({
-      dose: adultDrug.dose,
-      volume: adultDrug.volume,
-      concentration: adultDrug.concentration,
-      notes: adultDrug.notes
-    });
-    
-    toast({
-      title: "Dosage Calculated",
-      description: `Standard adult dosage for ${drug.name}.`,
-    });
+  }, [selectedMed, selectedRoute, weight]);
+
+  // Handle medication selection
+  const handleSelectMedication = (med: Medication) => {
+    setSelectedMed(med);
+    if (med.routes.length > 0) {
+      setSelectedRoute(med.routes[0].name);
+    } else {
+      setSelectedRoute("");
+    }
   };
-  
-  // Calculate pediatric dose based on weight
-  const calculatePediatricDose = (drug: PediatricWeightBasedDrug, weight: number, route?: string) => {
-    // For drugs with different dosages by route
-    if (route && typeof drug.dosePerKg !== 'string') {
-      const dosePerKg = drug.dosePerKg[route];
-      const maxDose = typeof drug.maxDose !== 'string' ? drug.maxDose[route] : drug.maxDose;
-      
-      // Extract numerical value from dosePerKg string (e.g., "10 mcg/kg" -> 10)
-      const doseValueMatch = dosePerKg.match(/^([\d.]+)/);
-      const doseValue = doseValueMatch ? parseFloat(doseValueMatch[1]) : 0;
-      
-      // Calculate dose
-      let calculatedDose = doseValue * weight;
-      const doseUnit = dosePerKg.replace(/^[\d.]+ /, '');
-      
-      // Check if over max dose
-      if (maxDose) {
-        // Extract numerical value from maxDose
-        const maxDoseValueMatch = maxDose.toString().match(/^([\d.]+)/);
-        const maxDoseValue = maxDoseValueMatch ? parseFloat(maxDoseValueMatch[1]) : Infinity;
-        
-        if (calculatedDose > maxDoseValue) {
-          calculatedDose = maxDoseValue;
-        }
-      }
-      
-      return {
-        dose: `${calculatedDose} ${doseUnit}`,
-        volume: drug.concentration ? calculateVolumeFromDose(`${calculatedDose} ${doseUnit}`, drug.concentration) : 'Varies',
-        concentration: drug.concentration || 'Varies',
-        notes: `${drug.notes || ''} ${maxDose ? `Maximum dose: ${maxDose}.` : ''}`
-      };
-    }
-    
-    // For drugs with simple weight-based dosing
-    if (typeof drug.dosePerKg === 'string') {
-      // Extract numerical value from dosePerKg string (e.g., "10 mcg/kg" -> 10)
-      const doseValueMatch = drug.dosePerKg.match(/^([\d.]+)/);
-      const doseValue = doseValueMatch ? parseFloat(doseValueMatch[1]) : 0;
-      
-      // Calculate dose
-      let calculatedDose = doseValue * weight;
-      const doseUnit = drug.dosePerKg.replace(/^[\d.]+ /, '');
-      
-      // Check if over max dose
-      if (drug.maxDose) {
-        // Extract numerical value from maxDose
-        const maxDoseValueMatch = drug.maxDose.toString().match(/^([\d.]+)/);
-        const maxDoseValue = maxDoseValueMatch ? parseFloat(maxDoseValueMatch[1]) : Infinity;
-        
-        if (calculatedDose > maxDoseValue) {
-          calculatedDose = maxDoseValue;
-        }
-      }
-      
-      return {
-        dose: `${calculatedDose} ${doseUnit}`,
-        volume: drug.concentration ? calculateVolumeFromDose(`${calculatedDose} ${doseUnit}`, drug.concentration) : 'Varies',
-        concentration: drug.concentration || 'Varies',
-        notes: `${drug.notes || ''} ${drug.maxDose ? `Maximum dose: ${drug.maxDose}.` : ''}`
-      };
-    }
-    
-    return {
-      dose: 'Calculation not available',
-      volume: 'Calculation not available',
-      concentration: drug.concentration || 'Varies',
-      notes: drug.notes || 'See JRCALC guidelines.'
-    };
-  };
-  
-  // Calculate volume from dose and concentration (simple estimation)
-  const calculateVolumeFromDose = (dose: string, concentration: string) => {
-    // This is a simplified calculation and would need more complex logic for real applications
-    // Extract dose value
-    const doseMatch = dose.match(/^([\d.]+) (mg|mcg)/);
-    if (!doseMatch) return 'Calculation not available';
-    
-    const doseValue = parseFloat(doseMatch[1]);
-    const doseUnit = doseMatch[2];
-    
-    // Extract concentration value
-    const concentrationMatch = concentration.match(/([\d.]+) (mg|mcg)\/(ml|mL)/);
-    if (!concentrationMatch) {
-      if (concentration.includes('mg/mL')) {
-        // Try another pattern
-        const altMatch = concentration.match(/([\d.]+) (mg) in ([\d.]+) (mL)/);
-        if (altMatch) {
-          const concValue = parseFloat(altMatch[1]);
-          const concVolume = parseFloat(altMatch[3]);
-          const actualConcentration = concValue / concVolume;
-          
-          // If units match, calculate volume
-          if (doseUnit === altMatch[2]) {
-            return `${(doseValue / actualConcentration).toFixed(1)} mL`;
-          }
-        }
-      }
-      
-      return 'See reference';
-    }
-    
-    const concentrationValue = parseFloat(concentrationMatch[1]);
-    const concentrationUnit = concentrationMatch[2];
-    
-    // If units match, calculate volume
-    if (doseUnit === concentrationUnit) {
-      return `${(doseValue / concentrationValue).toFixed(1)} mL`;
-    }
-    
-    // If units don't match (e.g., dose in mg, concentration in mcg/mL)
-    if (doseUnit === 'mg' && concentrationUnit === 'mcg') {
-      // Convert mg to mcg
-      return `${((doseValue * 1000) / concentrationValue).toFixed(1)} mL`;
-    } else if (doseUnit === 'mcg' && concentrationUnit === 'mg') {
-      // Convert mcg to mg
-      return `${(doseValue / (concentrationValue * 1000)).toFixed(1)} mL`;
-    }
-    
-    return 'Calculation not available';
-  };
-  
-  // Reset form
-  const resetForm = () => {
-    setSelectedDrug('');
-    setWeight(undefined);
-    setAge(undefined);
-    setSelectedRoute('');
-    setCalculationResults(null);
-  };
-  
+
   return (
     <div className="container mx-auto py-6">
-      <div className="flex items-center mb-8">
-        <Weight size={32} className="text-nhs-green mr-4" />
-        <div>
-          <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Drug Dosage Calculator</h1>
-          <p className="text-gray-600 dark:text-gray-400">Weight-based medication calculator</p>
-        </div>
+      <div className="flex items-center mb-6">
+        <Button variant="outline" onClick={() => navigate('/calculators')} className="mr-2">
+          <ArrowLeft size={16} className="mr-1" /> Back
+        </Button>
+        <h1 className="text-2xl font-bold text-nhs-dark-blue dark:text-white flex items-center">
+          <Weight className="mr-2" /> Drug Dosage Calculator
+        </h1>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-6">
+        <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Medication Dose Calculator</CardTitle>
-              <CardDescription>Calculate medication dosages based on patient parameters</CardDescription>
+              <CardTitle>Patient Parameters</CardTitle>
+              <CardDescription>Enter patient details for accurate dosing</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Patient Category Selector */}
-              <div className="space-y-3">
-                <Label className="text-base">Patient Category</Label>
-                <div className="flex w-full mb-4">
-                  <Tabs defaultValue="adult" value={patientCategory} onValueChange={(v) => setPatientCategory(v as 'adult' | 'pediatric')} className="w-full">
-                    <TabsList className="w-full">
-                      <TabsTrigger value="adult" className="flex-1">Adult</TabsTrigger>
-                      <TabsTrigger value="pediatric" className="flex-1">Pediatric</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    value={weight}
+                    onChange={(e) => setWeight(parseFloat(e.target.value) || 0)}
+                    className="mt-1"
+                    min="0"
+                    max="500"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="age">Age (years)</Label>
+                  <Input
+                    id="age"
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(parseInt(e.target.value) || 0)}
+                    className="mt-1"
+                    min="0"
+                    max="120"
+                  />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Medication Search</CardTitle>
+              <CardDescription>Find a medication to calculate dosage</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Input 
+                  placeholder="Search medications..." 
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
               
-              {/* Patient Parameters */}
-              {patientCategory === 'pediatric' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="weight">Patient Weight (kg)</Label>
-                    <Input
-                      id="weight"
-                      type="number"
-                      placeholder="Enter weight in kg"
-                      value={weight ?? ''}
-                      onChange={(e) => setWeight(e.target.value ? Number(e.target.value) : undefined)}
-                    />
+              <div className="max-h-[300px] overflow-y-auto border rounded-md">
+                {filteredMeds.length === 0 ? (
+                  <div className="p-4 text-center text-gray-500">
+                    No medications found
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="age">Patient Age (years)</Label>
-                    <Input
-                      id="age"
-                      type="number"
-                      placeholder="Enter age in years"
-                      value={age ?? ''}
-                      onChange={(e) => setAge(e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </div>
-                </div>
-              )}
-              
-              {/* Drug Selection */}
-              <div className="space-y-2">
-                <Label htmlFor="drug-select">Select Medication</Label>
-                <Select value={selectedDrug} onValueChange={handleDrugSelect}>
-                  <SelectTrigger id="drug-select">
-                    <SelectValue placeholder="Select a medication" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currentDrugList.map((drug) => (
-                      <SelectItem key={drug.id} value={drug.id}>
-                        {drug.name}
-                      </SelectItem>
+                ) : (
+                  <div className="divide-y">
+                    {filteredMeds.map(med => (
+                      <div 
+                        key={med.id} 
+                        className={`p-3 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
+                          selectedMed?.id === med.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                        }`}
+                        onClick={() => handleSelectMedication(med)}
+                      >
+                        <div className="font-medium">{med.name}</div>
+                        <div className="text-xs text-gray-500">{med.category}</div>
+                      </div>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
-              
-              {/* Route Selection - Only show if the drug is selected and has multiple routes */}
-              {selectedDrug && drugObject && drugObject.routes.length > 1 && (
-                <div className="space-y-2">
-                  <Label htmlFor="route-select">Administration Route</Label>
-                  <Select value={selectedRoute} onValueChange={handleRouteSelect}>
-                    <SelectTrigger id="route-select">
-                      <SelectValue placeholder="Select administration route" />
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="space-y-4">
+          {selectedMed && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{selectedMed.name}</CardTitle>
+                <CardDescription>{selectedMed.category}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {selectedMed.concentration && (
+                  <div className="bg-gray-50 dark:bg-gray-800 p-2 rounded-md text-sm">
+                    <span className="font-medium">Concentration:</span> {selectedMed.concentration}
+                  </div>
+                )}
+                
+                <div>
+                  <Label htmlFor="route">Administration Route</Label>
+                  <Select 
+                    value={selectedRoute} 
+                    onValueChange={setSelectedRoute}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select route" />
                     </SelectTrigger>
                     <SelectContent>
-                      {drugObject.routes.map((route) => (
-                        <SelectItem key={route} value={route}>
-                          {route}
+                      {selectedMed.routes.map(route => (
+                        <SelectItem key={route.name} value={route.name}>
+                          {route.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-              )}
-              
-              {/* Notice */}
-              <Alert className="bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800">
-                <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                <AlertTitle>Important Notice</AlertTitle>
-                <AlertDescription>
-                  Always double-check all dosage calculations. This calculator is a guide only and should not replace clinical judgment.
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-            <CardFooter className="flex justify-between border-t pt-6">
-              <Button variant="outline" onClick={resetForm}>Reset</Button>
-              <Button onClick={calculateDosage}>Calculate Dosage</Button>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="lg:col-span-1">
-          {/* Results Card */}
-          <Card className={calculationResults ? "border-2 border-nhs-blue" : ""}>
-            <CardHeader>
-              <CardTitle>Dosage Results</CardTitle>
-              <CardDescription>
-                {drugObject ? drugObject.name : "Select a medication"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {calculationResults ? (
-                <div className="space-y-4">
-                  <div className="flex items-center mb-2">
-                    <CheckCircle className="text-green-600 mr-2" size={20} />
-                    <span className="text-lg font-medium">Calculation Complete</span>
+                
+                {selectedRoute && calculatedDosages && (
+                  <div className="mt-4">
+                    <h3 className="font-semibold mb-2">Calculated Dosage:</h3>
+                    <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md">
+                      {calculatedDosages.min === calculatedDosages.max ? (
+                        <div className="text-xl text-center font-bold text-nhs-blue">
+                          {calculatedDosages.min} {calculatedDosages.unit}
+                        </div>
+                      ) : (
+                        <div className="text-xl text-center font-bold text-nhs-blue">
+                          {calculatedDosages.min} - {calculatedDosages.max} {calculatedDosages.unit}
+                        </div>
+                      )}
+                      {calculatedDosages.isPerWeight && (
+                        <div className="text-center text-xs text-gray-500 mt-1">
+                          Based on weight of {weight}kg
+                        </div>
+                      )}
+                    </div>
+                    
+                    {selectedMed.routes.find(r => r.name === selectedRoute)?.notes && (
+                      <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 rounded-md text-sm">
+                        <p className="font-medium">Notes:</p>
+                        <p>{selectedMed.routes.find(r => r.name === selectedRoute)?.notes}</p>
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Dose</p>
-                      <p className="text-lg font-medium">{calculationResults.dose}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Volume</p>
-                      <p className="text-lg font-medium">{calculationResults.volume}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Concentration</p>
-                      <p className="text-base">{calculationResults.concentration}</p>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Notes</p>
-                      <Alert variant="default" className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
-                        <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        <AlertDescription className="text-sm">
-                          {calculationResults.notes}
-                        </AlertDescription>
-                      </Alert>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-8 text-center text-gray-500">
-                  <Pill className="mb-2 text-gray-400" size={32} />
-                  <p>Select a medication and enter patient parameters to calculate dosage.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full">Save to Patient Record</Button>
+              </CardFooter>
+            </Card>
+          )}
           
-          <Card className="mt-6">
+          <Card>
             <CardHeader>
-              <CardTitle className="text-base">About Drug Dosages</CardTitle>
+              <CardTitle className="text-sm">Important Information</CardTitle>
             </CardHeader>
             <CardContent className="text-sm">
-              <p>This calculator provides guidance on medication dosing based on current JRCALC and UK Ambulance Service Clinical Practice Guidelines.</p>
-              <p className="mt-2">Always refer to your local protocols and guidelines for specific medication administration instructions.</p>
-              <Alert className="mt-4 bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800">
-                <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                <AlertTitle className="text-sm">Clinical Use</AlertTitle>
-                <AlertDescription className="text-xs">
-                  This is a demonstration tool and should not be used in clinical practice without verification.
-                </AlertDescription>
-              </Alert>
+              <p>This calculator provides a guide only. Always check against current guidelines and prescribing information.</p>
+              <p className="mt-2 text-amber-600">Verify all dosages before administration.</p>
             </CardContent>
           </Card>
         </div>

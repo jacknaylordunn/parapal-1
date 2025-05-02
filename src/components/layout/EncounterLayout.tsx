@@ -11,7 +11,8 @@ import {
   Clock,
   ChevronLeft,
   Menu,
-  Settings
+  Settings,
+  Save
 } from "lucide-react";
 import { useEncounter } from "../../contexts/EncounterContext";
 import { useState, useEffect } from "react";
@@ -21,12 +22,25 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 
 const EncounterLayout = () => {
   const { id } = useParams<{ id: string }>();
   const { activeEncounter, endEncounter } = useEncounter();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [showEndEncounterDialog, setShowEndEncounterDialog] = useState(false);
+  const { toast } = useToast();
   
   // Calculate elapsed time since encounter started
   useEffect(() => {
@@ -51,14 +65,6 @@ const EncounterLayout = () => {
     
     return () => clearInterval(timerId);
   }, [activeEncounter?.startTime]);
-  
-  // Handle end encounter (with confirmation)
-  const handleEndEncounter = () => {
-    const confirmed = window.confirm('Are you sure you want to end this encounter?');
-    if (confirmed) {
-      endEncounter();
-    }
-  };
   
   // Navigation items for the encounter
   const navItems = [
@@ -85,6 +91,35 @@ const EncounterLayout = () => {
       return "New Patient";
     }
   };
+
+  // Handle return to dashboard with encounter kept active
+  const handleReturnToDashboard = () => {
+    toast({
+      title: "Encounter Saved",
+      description: "Your encounter is still active and can be resumed at any time.",
+    });
+  };
+  
+  // Handle end encounter with confirmation dialog
+  const handleEndEncounterClick = () => {
+    setShowEndEncounterDialog(true);
+  };
+  
+  const confirmEndEncounter = async () => {
+    try {
+      await endEncounter();
+      toast({
+        title: "Encounter Closed",
+        description: "The patient encounter has been successfully saved and closed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to close the encounter. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -107,9 +142,10 @@ const EncounterLayout = () => {
       <nav className="space-y-1 flex-1 mb-4">
         <Link 
           to="/" 
+          onClick={handleReturnToDashboard}
           className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700"
         >
-          <Home size={20} className="mr-3" /> Dashboard
+          <Home size={20} className="mr-3" /> Return to Dashboard
         </Link>
         
         <hr className="my-2 border-gray-200 dark:border-gray-700" />
@@ -133,13 +169,14 @@ const EncounterLayout = () => {
         ))}
       </nav>
       
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          onClick={handleEndEncounter}
-          className="w-full flex items-center justify-center px-4 py-2 bg-nhs-red hover:bg-red-700 text-white font-semibold rounded-md transition-colors"
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+        <Button
+          onClick={handleEndEncounterClick}
+          variant="outline"
+          className="w-full flex items-center justify-center"
         >
-          <X size={18} className="mr-2" /> End Encounter
-        </button>
+          <Save size={18} className="mr-2" /> Save & Close Encounter
+        </Button>
       </div>
     </div>
   );
@@ -163,7 +200,7 @@ const EncounterLayout = () => {
         </div>
 
         {/* Back to dashboard button - visible on all devices */}
-        <Link to="/" className="flex items-center text-nhs-blue">
+        <Link to="/" onClick={handleReturnToDashboard} className="flex items-center text-nhs-blue">
           <ChevronLeft size={20} className="mr-1" />
           <span className="hidden sm:inline">Back to Dashboard</span>
           <span className="sm:hidden">Dashboard</span>
@@ -196,6 +233,25 @@ const EncounterLayout = () => {
           <Outlet />
         </div>
       </div>
+
+      {/* End Encounter Dialog */}
+      <AlertDialog open={showEndEncounterDialog} onOpenChange={setShowEndEncounterDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close Patient Encounter</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to save and close this patient encounter? 
+              This will complete the documentation and make it available in the records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmEndEncounter} className="bg-nhs-blue hover:bg-nhs-dark-blue">
+              Save & Close
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

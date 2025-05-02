@@ -2,21 +2,14 @@
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useEncounter } from "../../contexts/EncounterContext";
-import { Sun, Moon, Laptop, ChevronLeft } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useTheme } from "../../contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { activeEncounter, isLoading } = useEncounter();
-  const { theme, setTheme } = useTheme();
   
   // Check if we're on a subpage that needs a back button
   const showBackButton = () => {
@@ -48,15 +41,6 @@ const MainLayout = () => {
     }
   }, [activeEncounter, isLoading, location.pathname, navigate]);
   
-  // Get the icon based on current theme setting
-  const getThemeIcon = () => {
-    switch (theme) {
-      case 'light': return <Sun size={24} />;
-      case 'dark': return <Moon size={24} />;
-      case 'system': return <Laptop size={24} />;
-    }
-  };
-  
   return (
     <div className="min-h-screen dark:bg-gray-900 dark:text-white transition-colors duration-300">
       {/* Header */}
@@ -80,30 +64,6 @@ const MainLayout = () => {
             </span>
           )}
         </div>
-        
-        {/* Theme dropdown */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue transition-colors"
-            >
-              {getThemeIcon()}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center">
-              <Sun size={16} className="mr-2" /> Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center">
-              <Moon size={16} className="mr-2" /> Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('system')} className="flex items-center">
-              <Laptop size={16} className="mr-2" /> System
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </header>
       
       {/* Main Content */}
