@@ -1,100 +1,92 @@
-
 import { Outlet, NavLink, useParams, Link, useNavigate } from "react-router-dom";
-import { 
-  User,
-  Activity,
-  FileText,
-  BookOpen,
-  Share2,
-  Home,
-  X,
-  Clock,
-  ChevronLeft,
-  Menu,
-  Settings,
-  Save,
-  Trash2
-} from "lucide-react";
+import { User, Activity, FileText, BookOpen, Share2, Home, X, Clock, ChevronLeft, Menu, Settings, Save, Trash2 } from "lucide-react";
 import { useIncident } from "../../contexts/IncidentContext";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-
 const IncidentLayout = () => {
-  const { id } = useParams<{ id: string }>();
-  const { activeIncident, endIncident, deleteIncident, refreshIncident } = useIncident();
+  const {
+    id
+  } = useParams<{
+    id: string;
+  }>();
+  const {
+    activeIncident,
+    endIncident,
+    deleteIncident,
+    refreshIncident
+  } = useIncident();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showEndIncidentDialog, setShowEndIncidentDialog] = useState(false);
   const [showDeleteIncidentDialog, setShowDeleteIncidentDialog] = useState(false);
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-  
+
   // Refresh incident data periodically to get latest patient info
   useEffect(() => {
     const updateInterval = setInterval(() => {
       refreshIncident();
     }, 10000); // Refresh every 10 seconds
-    
+
     return () => clearInterval(updateInterval);
   }, [refreshIncident]);
-  
+
   // Calculate elapsed time since incident started
   useEffect(() => {
     if (!activeIncident?.startTime) return;
-    
     const startTime = new Date(activeIncident.startTime).getTime();
-    
     const updateElapsedTime = () => {
       const now = new Date().getTime();
       const elapsed = now - startTime;
-      
+
       // Format as HH:MM:SS
       const hours = Math.floor(elapsed / 3600000).toString().padStart(2, '0');
-      const minutes = Math.floor((elapsed % 3600000) / 60000).toString().padStart(2, '0');
-      const seconds = Math.floor((elapsed % 60000) / 1000).toString().padStart(2, '0');
-      
+      const minutes = Math.floor(elapsed % 3600000 / 60000).toString().padStart(2, '0');
+      const seconds = Math.floor(elapsed % 60000 / 1000).toString().padStart(2, '0');
       setElapsedTime(`${hours}:${minutes}:${seconds}`);
     };
-    
     updateElapsedTime();
     const timerId = setInterval(updateElapsedTime, 1000);
-    
     return () => clearInterval(timerId);
   }, [activeIncident?.startTime]);
-  
+
   // Navigation items for the incident
-  const navItems = [
-    { to: `/incident/${id}/patient`, icon: <User size={20} />, label: "Patient" },
-    { to: `/incident/${id}/vitals`, icon: <Activity size={20} />, label: "Vitals" },
-    { to: `/incident/${id}/history`, icon: <FileText size={20} />, label: "History" },
-    { to: `/incident/${id}/guidance`, icon: <BookOpen size={20} />, label: "Guidance" },
-    { to: `/incident/${id}/handover`, icon: <Share2 size={20} />, label: "Handover" }
-  ];
+  const navItems = [{
+    to: `/incident/${id}/patient`,
+    icon: <User size={20} />,
+    label: "Patient"
+  }, {
+    to: `/incident/${id}/vitals`,
+    icon: <Activity size={20} />,
+    label: "Vitals"
+  }, {
+    to: `/incident/${id}/history`,
+    icon: <FileText size={20} />,
+    label: "History"
+  }, {
+    to: `/incident/${id}/guidance`,
+    icon: <BookOpen size={20} />,
+    label: "Guidance"
+  }, {
+    to: `/incident/${id}/handover`,
+    icon: <Share2 size={20} />,
+    label: "Handover"
+  }];
 
   // Function to get patient name from incident
   const getPatientName = () => {
     if (!activeIncident || !activeIncident.patientDetails) {
       return "Unknown Patient";
     }
-    
-    const { firstName, lastName } = activeIncident.patientDetails;
-    
+    const {
+      firstName,
+      lastName
+    } = activeIncident.patientDetails;
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (activeIncident.isUnknownPatient) {
@@ -109,10 +101,10 @@ const IncidentLayout = () => {
     navigate('/');
     toast({
       title: "Incident Saved",
-      description: "Your incident is still active and can be resumed at any time.",
+      description: "Your incident is still active and can be resumed at any time."
     });
   };
-  
+
   // Handle end incident with confirmation dialog
   const handleEndIncidentClick = () => {
     setShowEndIncidentDialog(true);
@@ -122,41 +114,37 @@ const IncidentLayout = () => {
   const handleDeleteIncidentClick = () => {
     setShowDeleteIncidentDialog(true);
   };
-  
   const confirmEndIncident = async () => {
     try {
       await endIncident();
       toast({
         title: "Incident Closed",
-        description: "The patient incident has been successfully saved and closed.",
+        description: "The patient incident has been successfully saved and closed."
       });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to close the incident. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-
   const confirmDeleteIncident = async () => {
     try {
       await deleteIncident();
       toast({
         title: "Incident Deleted",
-        description: "The patient incident has been deleted.",
+        description: "The patient incident has been deleted."
       });
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to delete the incident. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
-  
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+  const SidebarContent = () => <div className="flex flex-col h-full">
       {/* Timer display */}
       <div className="text-center mb-4 font-mono p-2 bg-gray-100 dark:bg-gray-700 rounded-md flex justify-center items-center">
         <Clock size={18} className="mr-2 text-nhs-blue dark:text-nhs-light-blue" />
@@ -174,57 +162,31 @@ const IncidentLayout = () => {
       
       {/* Navigation */}
       <nav className="space-y-1 flex-1 mb-4">
-        <Link 
-          to="/" 
-          onClick={handleReturnToDashboard}
-          className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
+        <Link to="/" onClick={handleReturnToDashboard} className="flex items-center p-2 rounded-md text-nhs-blue dark:text-nhs-light-blue hover:bg-gray-100 dark:hover:bg-gray-700">
           <Home size={20} className="mr-3" /> Return to Dashboard
         </Link>
         
         <hr className="my-2 border-gray-200 dark:border-gray-700" />
         
-        {navItems.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            onClick={() => setIsMobileSidebarOpen(false)}
-            className={({ isActive }) => 
-              `flex items-center p-2 rounded-md ${
-                isActive 
-                  ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' 
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`
-            }
-          >
+        {navItems.map(item => <NavLink key={item.to} to={item.to} onClick={() => setIsMobileSidebarOpen(false)} className={({
+        isActive
+      }) => `flex items-center p-2 rounded-md ${isActive ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
             <span className="w-7">{item.icon}</span>
             <span className="ml-2">{item.label}</span>
-          </NavLink>
-        ))}
+          </NavLink>)}
       </nav>
       
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
-        <Button
-          onClick={handleEndIncidentClick}
-          variant="outline"
-          className="w-full flex items-center justify-center"
-        >
+        <Button onClick={handleEndIncidentClick} variant="outline" className="w-full flex items-center justify-center">
           <Save size={18} className="mr-2" /> Save & Close Incident
         </Button>
         
-        <Button
-          onClick={handleDeleteIncidentClick}
-          variant="destructive"
-          className="w-full flex items-center justify-center"
-        >
+        <Button onClick={handleDeleteIncidentClick} variant="destructive" className="w-full flex items-center justify-center">
           <Trash2 size={18} className="mr-2" /> Delete Incident
         </Button>
       </div>
-    </div>
-  );
-  
-  return (
-    <div className="container mx-auto px-4 py-4">
+    </div>;
+  return <div className="container mx-auto px-4 py-4">
       {/* Top navigation bar - visible on all devices */}
       <div className="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
         {/* Mobile menu button */}
@@ -243,8 +205,8 @@ const IncidentLayout = () => {
 
         {/* Back to dashboard button - visible on all devices */}
         <Link to="/" onClick={handleReturnToDashboard} className="flex items-center text-nhs-blue">
-          <ChevronLeft size={20} className="mr-1" />
-          <span className="hidden sm:inline">Back to Dashboard</span>
+          
+          
           <span className="sm:hidden">Dashboard</span>
         </Link>
 
@@ -313,8 +275,6 @@ const IncidentLayout = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  );
+    </div>;
 };
-
 export default IncidentLayout;
