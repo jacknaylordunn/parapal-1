@@ -1,18 +1,30 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db, PatientEncounter, VitalSignReading, PatientHistory } from '../../lib/db';
-import { Copy, Download, Check } from 'lucide-react';
+import { Copy, Download, Check, AlertCircle, Heart } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from '@/components/ui/button';
 
 const HandoverPage = () => {
   const { id } = useParams<{ id: string }>();
   const encounterId = parseInt(id || '0');
+  const { toast } = useToast();
   
   const [encounter, setEncounter] = useState<PatientEncounter | null>(null);
   const [vitalSigns, setVitalSigns] = useState<VitalSignReading[]>([]);
   const [patientHistory, setPatientHistory] = useState<PatientHistory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [atmistCopied, setAtmistCopied] = useState(false);
+  const [preAlertType, setPreAlertType] = useState<string | null>(null);
+  const [showPreAlertDialog, setShowPreAlertDialog] = useState(false);
   
   // Load encounter data
   useEffect(() => {
@@ -140,6 +152,29 @@ Handover Time: ${new Date().toLocaleString()}`;
     db.logIncident(encounterId, 'Attempted to Generate PDF (Placeholder)');
   };
   
+  // Handle pre-alert selection
+  const handlePreAlertClick = (type: string) => {
+    setPreAlertType(type);
+    setShowPreAlertDialog(true);
+    // Log the pre-alert action
+    db.logIncident(encounterId, `${type} Pre-alert Initiated`);
+  };
+  
+  // Submit pre-alert (simulated)
+  const submitPreAlert = () => {
+    // This would connect to an actual service in production
+    toast({
+      title: "Pre-alert Sent Successfully",
+      description: `${preAlertType} team has been notified and is preparing for patient arrival.`,
+      variant: "default",
+    });
+    
+    setShowPreAlertDialog(false);
+    
+    // Log the action
+    db.logIncident(encounterId, `${preAlertType} Pre-alert Sent`);
+  };
+  
   if (isLoading) {
     return <div className="p-8 text-center">Loading handover information...</div>;
   }
@@ -224,6 +259,7 @@ Handover Time: ${new Date().toLocaleString()}`;
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <button
+            onClick={() => handlePreAlertClick('STEMI')}
             className="bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 p-4 rounded-md border border-red-300 dark:border-red-800 text-center transition-colors"
           >
             <h3 className="text-red-800 dark:text-red-300 font-semibold mb-1">STEMI Pre-alert</h3>
@@ -231,6 +267,7 @@ Handover Time: ${new Date().toLocaleString()}`;
           </button>
           
           <button
+            onClick={() => handlePreAlertClick('Stroke')}
             className="bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 p-4 rounded-md border border-purple-300 dark:border-purple-800 text-center transition-colors"
           >
             <h3 className="text-purple-800 dark:text-purple-300 font-semibold mb-1">Stroke Pre-alert</h3>
@@ -238,6 +275,7 @@ Handover Time: ${new Date().toLocaleString()}`;
           </button>
           
           <button
+            onClick={() => handlePreAlertClick('Trauma')}
             className="bg-amber-100 dark:bg-amber-900/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 p-4 rounded-md border border-amber-300 dark:border-amber-800 text-center transition-colors"
           >
             <h3 className="text-amber-800 dark:text-amber-300 font-semibold mb-1">Trauma Pre-alert</h3>
@@ -261,6 +299,70 @@ Handover Time: ${new Date().toLocaleString()}`;
           </p>
         </div>
       </div>
+
+      {/* Pre-alert Dialog */}
+      <Dialog open={showPreAlertDialog} onOpenChange={setShowPreAlertDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center">
+              <AlertCircle className="mr-2 text-red-500" /> 
+              {preAlertType} Pre-alert
+            </DialogTitle>
+            <DialogDescription>
+              {preAlertType === 'STEMI' && (
+                <>
+                  You are about to notify the cardiac catheterization lab of an incoming STEMI patient.
+                  This will trigger an immediate response from the cardiac team.
+                </>
+              )}
+              {preAlertType === 'Stroke' && (
+                <>
+                  You are about to notify the stroke team of an incoming patient with suspected stroke.
+                  This will activate the stroke protocol at the receiving facility.
+                </>
+              )}
+              {preAlertType === 'Trauma' && (
+                <>
+                  You are about to notify the trauma team of an incoming major trauma patient.
+                  This will trigger trauma team activation at the receiving facility.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-md">
+              <h4 className="font-medium mb-2 flex items-center">
+                {preAlertType === 'STEMI' && <Heart className="mr-2 text-red-500" />}
+                {preAlertType === 'Stroke' && <AlertCircle className="mr-2 text-purple-500" />}
+                {preAlertType === 'Trauma' && <AlertCircle className="mr-2 text-amber-500" />}
+                Patient Details
+              </h4>
+              <p className="text-sm mb-2">
+                <strong>Name:</strong> {encounter?.patientDetails?.firstName} {encounter?.patientDetails?.lastName}
+              </p>
+              <p className="text-sm mb-2">
+                <strong>Age:</strong> {encounter?.patientDetails?.age} years
+              </p>
+              <p className="text-sm">
+                <strong>Estimated arrival:</strong> {new Date(Date.now() + 15 * 60000).toLocaleTimeString()} (15 minutes)
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPreAlertDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="bg-red-600 hover:bg-red-700 text-white" 
+              onClick={submitPreAlert}
+            >
+              Send Pre-alert
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

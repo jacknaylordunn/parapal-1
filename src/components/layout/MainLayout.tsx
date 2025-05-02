@@ -57,7 +57,14 @@ const MainLayout = () => {
               <ChevronLeft size={24} />
             </Button>
           )}
-          <h1 className="text-2xl font-bold">ParaPal</h1>
+          <h1 
+            className="text-2xl font-bold cursor-pointer hover:underline" 
+            onClick={() => navigate('/')}
+            role="link"
+            aria-label="Go to home page"
+          >
+            ParaPal
+          </h1>
           {activeEncounter && (
             <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-3 py-1 text-sm font-bold border dark:border-white">
               {activeEncounter.incidentNumber}
