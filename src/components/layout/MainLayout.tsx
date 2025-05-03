@@ -44,21 +44,21 @@ const MainLayout = () => {
   return (
     <div className="min-h-screen dark:bg-gray-900 dark:text-white transition-colors duration-300">
       {/* Header */}
-      <header className="bg-nhs-blue dark:bg-nhs-dark-blue text-white p-4 shadow-md flex justify-between items-center">
-        <div className="flex items-center space-x-2">
+      <header className="sticky top-0 z-50 bg-nhs-blue dark:bg-nhs-dark-blue text-white p-3 md:p-4 shadow-md flex justify-between items-center">
+        <div className="flex items-center space-x-2 overflow-hidden">
           {showBackButton() && (
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => navigate(-1)}
-              className="mr-2 hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue transition-colors"
+              className="mr-1 hover:bg-nhs-dark-blue dark:hover:bg-nhs-blue transition-colors flex-shrink-0"
               aria-label="Go back"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} />
             </Button>
           )}
           <h1 
-            className="text-2xl font-bold cursor-pointer hover:underline" 
+            className="text-lg md:text-2xl font-bold cursor-pointer hover:underline whitespace-nowrap" 
             onClick={() => navigate('/')}
             role="link"
             aria-label="Go to home page"
@@ -66,7 +66,7 @@ const MainLayout = () => {
             ParaPal
           </h1>
           {activeEncounter && activeEncounter.incidentNumber && (
-            <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-3 py-1 text-sm font-bold border dark:border-white">
+            <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-2 py-0.5 text-xs md:text-sm font-bold border dark:border-white truncate max-w-[120px] md:max-w-none">
               {activeEncounter.incidentNumber}
             </span>
           )}
@@ -74,13 +74,13 @@ const MainLayout = () => {
       </header>
       
       {/* Main Content */}
-      <main className="container mx-auto p-4">
+      <main className="mx-auto px-3 md:container md:px-4 pb-16 pt-4">
         <Outlet />
       </main>
       
       {/* Footer */}
-      <footer className="bg-nhs-dark-blue dark:bg-gray-800 text-white p-3 text-center text-sm">
-        <p>ParaPal Clinical Decision Support (DEVELOPMENT VERSION - NOT FOR CLINICAL USE)</p>
+      <footer className="fixed bottom-0 w-full bg-nhs-dark-blue dark:bg-gray-800 text-white p-2 text-center text-xs z-40">
+        <p className="truncate">ParaPal Clinical Decision Support (DEVELOPMENT VERSION - NOT FOR CLINICAL USE)</p>
       </footer>
     </div>
   );

@@ -71,8 +71,8 @@ const Calculators = () => {
   );
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-8">
+    <div className="py-4">
+      <div className="flex items-center mb-6">
         <Button 
           variant="ghost" 
           size="icon" 
@@ -82,10 +82,10 @@ const Calculators = () => {
         >
           <ChevronLeft size={24} />
         </Button>
-        <Calculator size={32} className="text-nhs-blue mr-4" />
+        <Calculator size={28} className="text-nhs-blue mr-3" />
         <div>
-          <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Clinical Calculators</h1>
-          <p className="text-gray-600 dark:text-gray-400">Decision support tools for patient assessment</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-nhs-dark-blue dark:text-white">Clinical Calculators</h1>
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">Decision support tools</p>
         </div>
       </div>
 
@@ -100,27 +100,27 @@ const Calculators = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         {filteredCalculators.map((calc) => (
           <Card 
             key={calc.id} 
             className="hover:shadow-md transition-shadow duration-200"
           >
-            <CardHeader>
-              <CardTitle className="flex items-center">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center text-lg">
                 <div className="mr-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-full">
                   {calc.icon}
                 </div>
-                {calc.title}
+                <span className="truncate">{calc.title}</span>
               </CardTitle>
-              <CardDescription>{calc.description}</CardDescription>
+              <CardDescription className="line-clamp-2">{calc.description}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-2">
               <div className="flex flex-wrap gap-2">
                 {calc.tags.map(tag => (
                   <span 
                     key={tag}
-                    className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full text-gray-600 dark:text-gray-300"
+                    className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full text-gray-600 dark:text-gray-300"
                   >
                     {tag}
                   </span>
@@ -146,20 +146,20 @@ const Calculators = () => {
         </div>
       )}
 
-      <Separator className="my-8" />
+      <Separator className="my-6" />
 
-      <div className="mt-8 max-w-2xl mx-auto">
-        <h2 className="text-xl font-bold mb-4">About Clinical Calculators</h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+      <div className="mt-6 mx-auto max-w-2xl">
+        <h2 className="text-lg md:text-xl font-bold mb-3">About Clinical Calculators</h2>
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-3">
           These clinical calculators assist with patient assessment and clinical decision-making. They are designed to be used as adjuncts to clinical judgment and should not replace thorough assessment.
         </p>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
           Always follow your local clinical guidelines and protocols when making treatment decisions.
         </p>
       </div>
 
       {/* Development notice */}
-      <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800 max-w-2xl mx-auto">
+      <div className="mt-6 p-3 md:p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800 max-w-2xl mx-auto text-sm">
         <h3 className="font-bold">Development Version</h3>
         <p>These calculators are for demonstration purposes only. Always verify calculations with approved tools.</p>
       </div>

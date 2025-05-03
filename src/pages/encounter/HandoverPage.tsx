@@ -36,11 +36,9 @@ const HandoverPage = () => {
     return <div className="p-4">No active encounter</div>;
   }
   
-  const { 
-    patientDetails,
-    observations,
-    medicalHistory
-  } = activeEncounter;
+  const patientDetails = activeEncounter.patientDetails || {};
+  const observations = activeEncounter.observations || [];
+  const medicalHistory = activeEncounter.medicalHistory || {};
   
   const handleCopyATMIST = () => {
     if (document.getElementById('atmist-content')) {
@@ -102,7 +100,7 @@ const HandoverPage = () => {
               >
                 <h3 className="font-bold mb-4 text-nhs-blue dark:text-nhs-light-blue">ATMIST HANDOVER - CAD: {activeEncounter.incidentNumber}</h3>
                 
-                <p className="mb-3"><strong>A - Age: </strong>{patientDetails?.age || 'Not recorded'} {patientDetails?.ageUnit || ''}</p>
+                <p className="mb-3"><strong>A - Age: </strong>{patientDetails?.age || 'Not recorded'} {patientDetails?.ageUnit || 'years'}</p>
                 
                 <p className="mb-3"><strong>T - Time of Onset: </strong>{activeEncounter.startTime ? new Date(activeEncounter.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Not recorded'} ({incidentTimeElapsed} ago)</p>
                 
@@ -208,7 +206,7 @@ const HandoverPage = () => {
                   <h3 className="font-semibold">Patient Details</h3>
                   <div className="mt-2 space-y-1">
                     <p>Name: {patientDetails?.firstName || 'Not recorded'} {patientDetails?.lastName || ''}</p>
-                    <p>Age: {patientDetails?.age || 'Not recorded'} {patientDetails?.ageUnit || ''}</p>
+                    <p>Age: {patientDetails?.age || 'Not recorded'} {patientDetails?.ageUnit || 'years'}</p>
                     <p>Gender: {patientDetails?.gender || 'Not recorded'}</p>
                     <p>NHS Number: {patientDetails?.nhsNumber || 'Not recorded'}</p>
                   </div>

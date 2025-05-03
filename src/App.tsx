@@ -74,8 +74,17 @@ const App = () => {
       }, SESSION_TIMEOUT);
     };
     
-    // Events that reset the inactivity timer
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    // Events that reset the inactivity timer (including touch events for mobile)
+    const events = [
+      'mousedown', 
+      'mousemove', 
+      'keypress', 
+      'scroll', 
+      'touchstart', 
+      'touchmove', 
+      'touchend'
+    ];
+    
     events.forEach(event => {
       document.addEventListener(event, resetInactivityTimer);
     });
@@ -83,6 +92,16 @@ const App = () => {
     // Start the timer
     resetInactivityTimer();
     
+    // Apply viewport meta tag for better mobile display
+    const meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
+    document.getElementsByTagName('head')[0].appendChild(meta);
+    
+    // Add touch action for better iOS behavior
+    document.documentElement.style.touchAction = 'manipulation';
+    
+    // Clean up
     return () => {
       // Clean up event listeners and timer
       clearTimeout(inactivityTimer);
