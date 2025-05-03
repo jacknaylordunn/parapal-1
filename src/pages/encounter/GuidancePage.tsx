@@ -13,6 +13,7 @@ import GCSCalculator from "../calculators/GCSCalculator";
 import DrugDosageCalculator from "../calculators/DrugDosageCalculator";
 import BurnsCalculator from "../calculators/BurnsCalculator";
 import QRISKCalculator from "../calculators/QRISKCalculator";
+import { guidelineCategories } from "../Guidelines";
 
 const GuidancePage = () => {
   const [activeCalculator, setActiveCalculator] = useState<string | null>(null);
@@ -148,22 +149,22 @@ const GuidancePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Select a category below to view relevant guidelines:
               </p>
-              <div className="mt-4 space-y-2">
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
-                  <h3 className="font-medium">Cardiac Emergencies</h3>
-                </div>
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
-                  <h3 className="font-medium">Respiratory Conditions</h3>
-                </div>
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
-                  <h3 className="font-medium">Medical Emergencies</h3>
-                </div>
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition">
-                  <h3 className="font-medium">Trauma Management</h3>
-                </div>
+              <div className="space-y-2">
+                {guidelineCategories.map((category) => (
+                  <Link 
+                    key={category.id}
+                    to={`/guidelines#${category.id}`}
+                    className="block p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition"
+                  >
+                    <h3 className="font-medium">{category.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {category.guidelines.length} guidelines
+                    </p>
+                  </Link>
+                ))}
               </div>
             </CardContent>
           </Card>

@@ -1,12 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, ChevronRight, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-// More comprehensive guidelines data structure with IDs and subtopics
+// Comprehensive guidelines data structure with IDs and subtopics
 export const guidelineCategories = [
   { 
     id: 'cardiac',
@@ -83,6 +83,16 @@ export const guidelineCategories = [
 
 const Guidelines = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  
+  // Check for hash in URL to auto-open a category
+  useEffect(() => {
+    if (location.hash) {
+      const categoryId = location.hash.substring(1);
+      setActiveCategory(categoryId);
+    }
+  }, [location]);
   
   // Filter guidelines based on search term
   const filteredCategories = guidelineCategories.map(category => ({
@@ -119,7 +129,13 @@ const Guidelines = () => {
       {/* Guidelines list */}
       <div className="space-y-6">
         {filteredCategories.length > 0 ? (
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion 
+            type="single" 
+            collapsible 
+            className="w-full"
+            value={activeCategory}
+            onValueChange={setActiveCategory}
+          >
             {filteredCategories.map((category) => (
               <AccordionItem key={category.id} value={category.id}>
                 <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 px-4 -mx-4 rounded text-lg">
@@ -157,8 +173,8 @@ const Guidelines = () => {
       
       {/* Development notice */}
       <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">
-        <p className="font-bold">Development Version</p>
-        <p className="text-sm">These guidelines are based on the latest JRCALC and UK Trust guidelines.</p>
+        <p className="font-bold">Updated May 2023</p>
+        <p className="text-sm">These guidelines reflect the latest JRCALC and UK Trust recommendations. Always follow your local protocols.</p>
       </div>
     </div>
   );
