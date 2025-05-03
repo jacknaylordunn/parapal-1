@@ -5,6 +5,7 @@ import { useEncounter } from '../contexts/EncounterContext';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 // Define call types for dropdown
 const callTypes = [
@@ -136,20 +137,19 @@ const NewEncounterPage = () => {
           
           {/* Action buttons */}
           <div className="flex justify-between pt-4">
-            <button
+            <Button
               type="button"
               onClick={() => navigate('/')}
-              className="px-5 py-3 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              variant="outline"
+              className="px-5 py-3"
             >
               Cancel
-            </button>
+            </Button>
             
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className={`px-5 py-3 bg-nhs-blue hover:bg-nhs-dark-blue text-white rounded-md font-medium flex items-center transition-colors ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              className="flex items-center"
             >
               {isSubmitting ? (
                 <>
@@ -165,7 +165,7 @@ const NewEncounterPage = () => {
                   Start Encounter
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

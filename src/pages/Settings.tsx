@@ -4,14 +4,17 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Settings as SettingsIcon, Sun, Moon, Laptop, BellRing, Database, Lock, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Sun, Moon, Laptop, BellRing, Database, Lock, Shield, LogOut, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Settings = () => {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState({
     alerts: true,
     updates: true,
@@ -32,10 +35,27 @@ const Settings = () => {
       variant: "destructive",
     });
   };
+  
+  const handleLogout = () => {
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out",
+    });
+    setTimeout(() => navigate('/'), 500);
+  };
 
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-8">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/')}
+          className="mr-2"
+          aria-label="Go back to home"
+        >
+          <ChevronLeft size={24} />
+        </Button>
         <SettingsIcon size={32} className="text-nhs-blue mr-4" />
         <div>
           <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Settings</h1>
@@ -194,6 +214,23 @@ const Settings = () => {
           <CardFooter>
             <Button onClick={handleSave}>Save Security Settings</Button>
           </CardFooter>
+        </Card>
+        
+        {/* Account Actions */}
+        <Card className="border-red-200 dark:border-red-900">
+          <CardHeader>
+            <CardTitle className="text-red-600 dark:text-red-400">Account Actions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button 
+              variant="destructive" 
+              className="flex items-center" 
+              onClick={handleLogout}
+            >
+              <LogOut size={16} className="mr-2" />
+              Log Out
+            </Button>
+          </CardContent>
         </Card>
       </div>
       

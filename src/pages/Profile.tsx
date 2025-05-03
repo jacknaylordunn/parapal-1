@@ -4,9 +4,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Edit, Save, X, Shield, Medal, Bookmark } from 'lucide-react';
+import { User, Edit, Save, X, Shield, Medal, Bookmark, LogOut, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Dummy profile data
 const initialProfile = {
@@ -25,6 +27,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState(initialProfile);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -45,9 +48,28 @@ const Profile = () => {
     setIsEditing(false);
   };
 
+  const handleLogout = () => {
+    // Demonstrate logout flow with toast notification
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out",
+    });
+    // Redirect to home page after logout
+    setTimeout(() => navigate('/'), 500);
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-8">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/')}
+          className="mr-2"
+          aria-label="Go back to home"
+        >
+          <ChevronLeft size={24} />
+        </Button>
         <User size={32} className="text-nhs-blue mr-4" />
         <div>
           <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">My Profile</h1>
@@ -211,6 +233,23 @@ const Profile = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Log out section */}
+      <Card className="mt-8 border-red-200 dark:border-red-900">
+        <CardHeader>
+          <CardTitle className="text-red-600 dark:text-red-400">Account Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button 
+            variant="destructive" 
+            className="flex items-center" 
+            onClick={handleLogout}
+          >
+            <LogOut size={16} className="mr-2" />
+            Log Out
+          </Button>
+        </CardContent>
+      </Card>
       
       {/* Development notice */}
       <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">

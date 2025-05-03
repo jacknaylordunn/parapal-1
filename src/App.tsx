@@ -16,6 +16,12 @@ import Calculators from "./pages/Calculators";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 
+// Auth Pages
+import SignInPage from "./pages/auth/SignInPage";
+
+// Organization Pages
+import OrganizationPage from "./pages/organizations/OrganizationPage";
+
 import MainLayout from "./components/layout/MainLayout";
 import EncounterLayout from "./components/layout/EncounterLayout";
 import PatientPage from "./pages/encounter/PatientPage";
@@ -96,6 +102,10 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <Routes>
+                  {/* Auth Routes */}
+                  <Route path="/auth/signin" element={<SignInPage />} />
+                  
+                  {/* Main App Routes */}
                   <Route path="/" element={<MainLayout />}>
                     <Route index element={<Index />} />
                     <Route path="new-encounter" element={<NewEncounterPage />} />
@@ -109,6 +119,9 @@ const App = () => {
                     <Route path="calculators/burns" element={<BurnsCalculator />} />
                     <Route path="profile" element={<Profile />} />
                     <Route path="settings" element={<Settings />} />
+                    
+                    {/* Organization Routes */}
+                    <Route path="organizations" element={<OrganizationPage />} />
                     
                     <Route path="encounter/:id" element={<EncounterLayout />}>
                       <Route path="patient" element={<PatientPage />} />

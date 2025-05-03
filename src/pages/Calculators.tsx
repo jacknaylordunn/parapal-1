@@ -1,138 +1,167 @@
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Calculator, ChevronRight, Activity, Heart, FlaskConical, Ruler, Thermometer, ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, Activity, Heart, Brain, Weight, Ruler, ChevronRight, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
-// Calculator data with proper routes
-const calculatorsList = [
+interface CalculatorItem {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  icon: React.ReactNode;
+  tags: string[];
+}
+
+const calculators: CalculatorItem[] = [
   {
     id: 'news2',
-    title: 'NEWS2 Score',
-    description: 'National Early Warning Score 2',
+    title: 'NEWS2 Calculator',
+    description: 'Calculate National Early Warning Score 2 for patient deterioration',
+    path: '/calculators/news2',
     icon: <Heart className="text-nhs-red" />,
-    details: 'Calculate deterioration risk based on vital signs',
-    route: '/calculators/news2'
+    tags: ['vitals', 'deterioration', 'triage']
   },
   {
     id: 'gcs',
     title: 'GCS Calculator',
-    description: 'Glasgow Coma Scale',
-    icon: <Brain className="text-nhs-purple" />,
-    details: 'Assess level of consciousness in a standardized way',
-    route: '/calculators/gcs'
+    description: 'Calculate Glasgow Coma Scale for consciousness assessment',
+    path: '/calculators/gcs',
+    icon: <Activity className="text-nhs-blue" />,
+    tags: ['neurological', 'consciousness', 'trauma']
   },
   {
     id: 'drug-dosage',
-    title: 'Drug Dosage',
-    description: 'Weight-based medication calculator',
-    icon: <Weight className="text-nhs-green" />,
-    details: 'Calculate medication doses based on patient weight',
-    route: '/calculators/drug-dosage'
+    title: 'Drug Dosage Calculator',
+    description: 'Calculate medication dosages based on patient weight and age',
+    path: '/calculators/drug-dosage',
+    icon: <FlaskConical className="text-nhs-purple" />,
+    tags: ['medication', 'pediatric', 'emergency']
   },
   {
     id: 'qrisk',
-    title: 'QRISK3',
-    description: 'Cardiovascular risk assessment',
-    icon: <Activity className="text-nhs-blue" />,
-    details: 'Estimate 10-year risk of heart attack or stroke',
-    route: '/calculators/qrisk'
+    title: 'QRISK3 Calculator',
+    description: 'Cardiovascular disease risk assessment',
+    path: '/calculators/qrisk',
+    icon: <Heart className="text-nhs-red" />,
+    tags: ['cardiac', 'prevention', 'risk']
   },
   {
     id: 'burns',
     title: 'Burns Calculator',
-    description: 'Total Body Surface Area',
-    icon: <Ruler className="text-nhs-orange" />,
-    details: 'Calculate burn percentage and fluid requirements',
-    route: '/calculators/burns'
+    description: 'Calculate total body surface area for burns assessment',
+    path: '/calculators/burns',
+    icon: <Thermometer className="text-nhs-warm-yellow" />,
+    tags: ['trauma', 'emergency', 'treatment']
   }
 ];
 
 const Calculators = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // Filter calculators based on search term
-  const filteredCalculators = calculatorsList.filter(calculator =>
-    calculator.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    calculator.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCalculators = calculators.filter(calc => 
+    calc.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    calc.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    calc.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
-  
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-8">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/')}
+          className="mr-2"
+          aria-label="Go back to home"
+        >
+          <ChevronLeft size={24} />
+        </Button>
         <Calculator size={32} className="text-nhs-blue mr-4" />
         <div>
           <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">Clinical Calculators</h1>
-          <p className="text-gray-600 dark:text-gray-400">Tools to assist with clinical decision making</p>
+          <p className="text-gray-600 dark:text-gray-400">Decision support tools for patient assessment</p>
         </div>
       </div>
-      
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input 
-            type="text"
-            placeholder="Search calculators..." 
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+
+      {/* Search box */}
+      <div className="mb-6 w-full max-w-md">
+        <Input
+          type="search"
+          placeholder="Search calculators..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full"
+        />
       </div>
-      
-      {/* Calculators grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCalculators.map(calculator => (
-          <Card key={calculator.id} className="hover:shadow-md transition-shadow duration-200">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filteredCalculators.map((calc) => (
+          <Card 
+            key={calc.id} 
+            className="hover:shadow-md transition-shadow duration-200"
+          >
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full">
-                  {calculator.icon}
+              <CardTitle className="flex items-center">
+                <div className="mr-3 p-2 bg-blue-50 dark:bg-blue-900 rounded-full">
+                  {calc.icon}
                 </div>
-                <div>
-                  <CardTitle className="text-lg">{calculator.title}</CardTitle>
-                  <CardDescription>{calculator.description}</CardDescription>
-                </div>
-              </div>
+                {calc.title}
+              </CardTitle>
+              <CardDescription>{calc.description}</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {calculator.details}
-              </p>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {calc.tags.map(tag => (
+                  <span 
+                    key={tag}
+                    className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full text-gray-600 dark:text-gray-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </CardContent>
             <CardFooter>
               <Button 
-                variant="ghost" 
-                className="w-full flex justify-between items-center"
-                asChild
+                className="w-full flex justify-between items-center" 
+                onClick={() => navigate(calc.path)}
               >
-                <Link to={calculator.route}>
-                  <span>Open Calculator</span>
-                  <ChevronRight size={16} />
-                </Link>
+                <span>Open Calculator</span>
+                <ChevronRight size={16} />
               </Button>
             </CardFooter>
           </Card>
         ))}
       </div>
-      
+
       {filteredCalculators.length === 0 && (
-        <Card className="my-8">
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <p className="text-gray-500 dark:text-gray-400 mb-2">
-              No calculators found matching "{searchTerm}"
-            </p>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400">No calculators found matching "{searchTerm}"</p>
+        </div>
       )}
-      
+
+      <Separator className="my-8" />
+
+      <div className="mt-8 max-w-2xl mx-auto">
+        <h2 className="text-xl font-bold mb-4">About Clinical Calculators</h2>
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
+          These clinical calculators assist with patient assessment and clinical decision-making. They are designed to be used as adjuncts to clinical judgment and should not replace thorough assessment.
+        </p>
+        <p className="text-gray-600 dark:text-gray-400">
+          Always follow your local clinical guidelines and protocols when making treatment decisions.
+        </p>
+      </div>
+
       {/* Development notice */}
-      <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">
-        <p className="font-bold">Development Version</p>
-        <p className="text-sm">These calculators are fully functional for demonstration purposes.</p>
+      <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800 max-w-2xl mx-auto">
+        <h3 className="font-bold">Development Version</h3>
+        <p>These calculators are for demonstration purposes only. Always verify calculations with approved tools.</p>
       </div>
     </div>
   );
