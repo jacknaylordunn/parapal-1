@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Settings as SettingsIcon, Sun, Moon, Laptop, BellRing, Database, Lock, Shield, LogOut, ChevronLeft } from 'lucide-react';
+import { Settings as SettingsIcon, Sun, Moon, Laptop, BellRing, Database, Lock, Shield, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,14 +34,6 @@ const Settings = () => {
       description: "All local data has been removed.",
       variant: "destructive",
     });
-  };
-  
-  const handleLogout = () => {
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-    setTimeout(() => navigate('/'), 500);
   };
 
   return (
@@ -214,23 +206,6 @@ const Settings = () => {
           <CardFooter>
             <Button onClick={handleSave}>Save Security Settings</Button>
           </CardFooter>
-        </Card>
-        
-        {/* Account Actions */}
-        <Card className="border-red-200 dark:border-red-900">
-          <CardHeader>
-            <CardTitle className="text-red-600 dark:text-red-400">Account Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              variant="destructive" 
-              className="flex items-center" 
-              onClick={handleLogout}
-            >
-              <LogOut size={16} className="mr-2" />
-              Log Out
-            </Button>
-          </CardContent>
         </Card>
       </div>
       

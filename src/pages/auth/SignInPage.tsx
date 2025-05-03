@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,27 +7,23 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LogIn, UserPlus, Check } from 'lucide-react';
+import { LogIn, UserPlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+
 const SignInPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
-  const {
-    signIn,
-    signUp,
-    isAuthenticated
-  } = useAuth();
+  const { signIn, signUp, isAuthenticated } = useAuth();
 
   // If already authenticated, redirect to home
   if (isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -40,6 +37,7 @@ const SignInPage = () => {
       setIsLoading(false);
     }
   };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -53,6 +51,16 @@ const SignInPage = () => {
       setIsLoading(false);
     }
   };
+
+  // Handle continue as guest
+  const handleContinueAsGuest = () => {
+    toast({
+      title: "Guest Access",
+      description: "You're continuing in guest mode. Some features may be limited."
+    });
+    navigate('/');
+  };
+
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col items-center justify-center p-4">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-nhs-dark-blue dark:text-white">ParaPal</h1>
@@ -113,7 +121,7 @@ const SignInPage = () => {
                   </div>
                 </div>
                 
-                <Button variant="outline" className="w-full" onClick={() => navigate('/')}>
+                <Button variant="outline" className="w-full" onClick={handleContinueAsGuest}>
                   Continue as Guest
                 </Button>
               </CardFooter>
@@ -176,4 +184,5 @@ const SignInPage = () => {
       </div>
     </div>;
 };
+
 export default SignInPage;
