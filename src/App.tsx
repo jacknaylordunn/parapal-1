@@ -4,9 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ToastProvider } from "@/components/ui/toast-notification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { EncounterProvider } from "./contexts/EncounterContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -49,6 +50,25 @@ const queryClient = new QueryClient();
 // Session timeout in milliseconds (15 minutes)
 const SESSION_TIMEOUT = 15 * 60 * 1000;
 
+// Protected route component that redirects to signin if not authenticated
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // While checking auth status, show nothing
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">
+      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-nhs-blue"></div>
+    </div>;
+  }
+  
+  // Redirect to signin if not authenticated
+  if (!isAuthenticated) {
+    return <Navigate to="/auth/signin" replace />;
+  }
+  
+  return children;
+};
+
 const App = () => {
   // Initialize database and session timeout
   useEffect(() => {
@@ -61,37 +81,6 @@ const App = () => {
       initializeDevData();
     }
     
-    // Setup idle timeout
-    let inactivityTimer: number;
-    
-    const resetInactivityTimer = () => {
-      clearTimeout(inactivityTimer);
-      inactivityTimer = window.setTimeout(() => {
-        // PLACEHOLDER: In a real app with authentication, this would log the user out
-        console.log('User inactive for 15 minutes. Session would be terminated.');
-        alert('Your session has timed out due to inactivity.');
-        // Placeholder for actual logout functionality
-      }, SESSION_TIMEOUT);
-    };
-    
-    // Events that reset the inactivity timer (including touch events for mobile)
-    const events = [
-      'mousedown', 
-      'mousemove', 
-      'keypress', 
-      'scroll', 
-      'touchstart', 
-      'touchmove', 
-      'touchend'
-    ];
-    
-    events.forEach(event => {
-      document.addEventListener(event, resetInactivityTimer);
-    });
-    
-    // Start the timer
-    resetInactivityTimer();
-    
     // Apply viewport meta tag for better mobile display
     const meta = document.createElement('meta');
     meta.name = 'viewport';
@@ -100,62 +89,59 @@ const App = () => {
     
     // Add touch action for better iOS behavior
     document.documentElement.style.touchAction = 'manipulation';
-    
-    // Clean up
-    return () => {
-      // Clean up event listeners and timer
-      clearTimeout(inactivityTimer);
-      events.forEach(event => {
-        document.removeEventListener(event, resetInactivityTimer);
-      });
-    };
   }, []);
   
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ToastProvider>
-          <BrowserRouter>
-            <EncounterProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  {/* Auth Routes */}
-                  <Route path="/auth/signin" element={<SignInPage />} />
-                  
-                  {/* Main App Routes */}
-                  <Route path="/" element={<MainLayout />}>
-                    <Route index element={<Index />} />
-                    <Route path="new-encounter" element={<NewEncounterPage />} />
-                    <Route path="guidelines" element={<Guidelines />} />
-                    <Route path="guidelines/:categoryId/:guidelineId" element={<GuidelineDetail />} />
-                    <Route path="calculators" element={<Calculators />} />
-                    <Route path="calculators/news2" element={<NEWS2Calculator />} />
-                    <Route path="calculators/gcs" element={<GCSCalculator />} />
-                    <Route path="calculators/drug-dosage" element={<DrugDosageCalculator />} />
-                    <Route path="calculators/qrisk" element={<QRISKCalculator />} />
-                    <Route path="calculators/burns" element={<BurnsCalculator />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="settings" element={<Settings />} />
+          <AuthProvider>
+            <BrowserRouter>
+              <EncounterProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <Routes>
+                    {/* Auth Routes - accessible without authentication */}
+                    <Route path="/auth/signin" element={<SignInPage />} />
                     
-                    {/* Organization Routes */}
-                    <Route path="organizations" element={<OrganizationPage />} />
-                    
-                    <Route path="encounter/:id" element={<EncounterLayout />}>
-                      <Route path="patient" element={<PatientPage />} />
-                      <Route path="vitals" element={<VitalsPage />} />
-                      <Route path="history" element={<HistoryPage />} />
-                      <Route path="guidance" element={<GuidancePage />} />
-                      <Route path="handover" element={<HandoverPage />} />
+                    {/* Main App Routes - protected */}
+                    <Route path="/" element={
+                      <ProtectedRoute>
+                        <MainLayout />
+                      </ProtectedRoute>
+                    }>
+                      <Route index element={<Index />} />
+                      <Route path="new-encounter" element={<NewEncounterPage />} />
+                      <Route path="guidelines" element={<Guidelines />} />
+                      <Route path="guidelines/:categoryId/:guidelineId" element={<GuidelineDetail />} />
+                      <Route path="calculators" element={<Calculators />} />
+                      <Route path="calculators/news2" element={<NEWS2Calculator />} />
+                      <Route path="calculators/gcs" element={<GCSCalculator />} />
+                      <Route path="calculators/drug-dosage" element={<DrugDosageCalculator />} />
+                      <Route path="calculators/qrisk" element={<QRISKCalculator />} />
+                      <Route path="calculators/burns" element={<BurnsCalculator />} />
+                      <Route path="profile" element={<Profile />} />
+                      <Route path="settings" element={<Settings />} />
+                      
+                      {/* Organization Routes */}
+                      <Route path="organizations" element={<OrganizationPage />} />
+                      
+                      <Route path="encounter/:id" element={<EncounterLayout />}>
+                        <Route path="patient" element={<PatientPage />} />
+                        <Route path="vitals" element={<VitalsPage />} />
+                        <Route path="history" element={<HistoryPage />} />
+                        <Route path="guidance" element={<GuidancePage />} />
+                        <Route path="handover" element={<HandoverPage />} />
+                      </Route>
                     </Route>
-                  </Route>
-                  {/* Catch all for 404s */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </TooltipProvider>
-            </EncounterProvider>
-          </BrowserRouter>
+                    {/* Catch all for 404s */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </TooltipProvider>
+              </EncounterProvider>
+            </BrowserRouter>
+          </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>

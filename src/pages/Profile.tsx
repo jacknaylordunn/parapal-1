@@ -1,260 +1,168 @@
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Edit, Save, X, Shield, Medal, Bookmark, LogOut, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useNavigate } from 'react-router-dom';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-// Dummy profile data
-const initialProfile = {
-  firstName: 'John',
-  lastName: 'Smith',
-  email: 'john.smith@ambulance.nhs.uk',
-  role: 'Paramedic',
-  registrationNumber: 'PA12345',
-  employeeId: 'NHS28374',
-  station: 'City Central',
-  trust: 'London Ambulance Service'
-};
+import { User, Mail, Building, LogOut, ChevronLeft, Save } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Profile = () => {
-  const [profile, setProfile] = useState(initialProfile);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedProfile, setEditedProfile] = useState(initialProfile);
-  const { toast } = useToast();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setEditedProfile({ ...editedProfile, [name]: value });
+  const { toast } = useToast();
+  
+  const [name, setName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [organization, setOrganization] = useState('NHS Ambulance Trust');
+  const [role, setRole] = useState(user?.role || 'Paramedic');
+  const [isSaving, setIsSaving] = useState(false);
+  
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    
+    // Simulate saving profile
+    setTimeout(() => {
+      setIsSaving(false);
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated"
+      });
+    }, 1000);
   };
-
-  const handleSave = () => {
-    setProfile(editedProfile);
-    setIsEditing(false);
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been saved.",
-    });
+  
+  const handleSignOut = () => {
+    signOut();
   };
-
-  const handleCancel = () => {
-    setEditedProfile(profile);
-    setIsEditing(false);
-  };
-
-  const handleLogout = () => {
-    // Demonstrate logout flow with toast notification
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    });
-    // Redirect to home page after logout
-    setTimeout(() => navigate('/'), 500);
-  };
-
+  
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-8">
+    <div className="container max-w-3xl mx-auto">
+      <div className="flex items-center mb-6">
         <Button 
           variant="ghost" 
-          size="icon" 
-          onClick={() => navigate('/')}
-          className="mr-2"
-          aria-label="Go back to home"
+          className="mr-2" 
+          onClick={() => navigate(-1)}
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft className="mr-1" size={20} />
+          Back
         </Button>
-        <User size={32} className="text-nhs-blue mr-4" />
-        <div>
-          <h1 className="text-3xl font-bold text-nhs-dark-blue dark:text-white">My Profile</h1>
-          <p className="text-gray-600 dark:text-gray-400">View and manage your account information</p>
-        </div>
+        <h1 className="text-2xl font-bold">My Profile</h1>
       </div>
-
-      <Tabs defaultValue="personal">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="personal">Personal Details</TabsTrigger>
-          <TabsTrigger value="professional">Professional Info</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="personal">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Your personal details and contact information</CardDescription>
-              </div>
-              {!isEditing ? (
-                <Button variant="ghost" onClick={() => setIsEditing(true)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit
+      
+      <div className="grid gap-6">
+        {/* Profile Information Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <User className="mr-2" />
+              Personal Information
+            </CardTitle>
+            <CardDescription>
+              Update your personal information
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSave}>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input 
+                      id="name" 
+                      className="pl-10" 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your full name" 
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input 
+                      id="email" 
+                      type="email" 
+                      className="pl-10" 
+                      value={email} 
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Your email address" 
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="organization">Organization</Label>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input 
+                      id="organization" 
+                      className="pl-10" 
+                      value={organization}
+                      onChange={(e) => setOrganization(e.target.value)}
+                      placeholder="Your organization" 
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Role</Label>
+                  <div className="relative">
+                    <svg className="absolute left-3 top-3 h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="5"></circle><path d="M20 21a8 8 0 1 0-16 0"></path></svg>
+                    <Input 
+                      id="role" 
+                      className="pl-10" 
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      placeholder="Your role" 
+                    />
+                  </div>
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2" size={18} />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
-              ) : (
-                <div className="flex gap-2">
-                  <Button variant="ghost" onClick={handleCancel}>
-                    <X className="mr-2 h-4 w-4" />
-                    Cancel
-                  </Button>
-                  <Button variant="default" onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save
-                  </Button>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  {isEditing ? (
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      value={editedProfile.firstName}
-                      onChange={handleChange}
-                    />
-                  ) : (
-                    <div className="border rounded-md p-2">{profile.firstName}</div>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  {isEditing ? (
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      value={editedProfile.lastName}
-                      onChange={handleChange}
-                    />
-                  ) : (
-                    <div className="border rounded-md p-2">{profile.lastName}</div>
-                  )}
-                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                {isEditing ? (
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={editedProfile.email}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <div className="border rounded-md p-2">{profile.email}</div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="professional">
-          <Card>
-            <CardHeader>
-              <CardTitle>Professional Information</CardTitle>
-              <CardDescription>Your professional credentials and assignment details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900 rounded-lg">
-                <Shield className="text-nhs-blue mr-3" />
-                <div>
-                  <div className="font-semibold">{profile.role}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300">Registration: {profile.registrationNumber}</div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="space-y-2">
-                  <Label>Employee ID</Label>
-                  <div className="border rounded-md p-2">{profile.employeeId}</div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Station</Label>
-                  <div className="border rounded-md p-2">{profile.station}</div>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>NHS Trust</Label>
-                <div className="border rounded-md p-2">{profile.trust}</div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Contact your manager to update professional details
-              </p>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="preferences">
-          <Card>
-            <CardHeader>
-              <CardTitle>App Preferences</CardTitle>
-              <CardDescription>Customize your app experience</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b">
-                <div className="flex items-center">
-                  <Medal className="mr-3 text-nhs-purple" />
-                  <div>
-                    <div className="font-semibold">Clinical Guidelines</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Set your preferred clinical guideline set
-                    </div>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Configure</Button>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b">
-                <div className="flex items-center">
-                  <Bookmark className="mr-3 text-nhs-warm-yellow" />
-                  <div>
-                    <div className="font-semibold">Saved Favorites</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Manage your saved guidelines and calculators
-                    </div>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm">Manage</Button>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <p className="text-sm text-gray-500">
-                More preferences will be added in future updates
-              </p>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
-      
-      {/* Log out section */}
-      <Card className="mt-8 border-red-200 dark:border-red-900">
-        <CardHeader>
-          <CardTitle className="text-red-600 dark:text-red-400">Account Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Button 
-            variant="destructive" 
-            className="flex items-center" 
-            onClick={handleLogout}
-          >
-            <LogOut size={16} className="mr-2" />
-            Log Out
-          </Button>
-        </CardContent>
-      </Card>
-      
-      {/* Development notice */}
-      <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg border border-yellow-200 dark:border-yellow-800">
-        <p className="font-bold">Development Version</p>
-        <p className="text-sm">This is a placeholder profile page for demonstration purposes only.</p>
+            </form>
+          </CardContent>
+        </Card>
+        
+        {/* Account Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-500">Account Actions</CardTitle>
+            <CardDescription>
+              Manage your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="destructive" onClick={handleSignOut} className="w-full">
+              <LogOut className="mr-2" size={18} />
+              Sign out
+            </Button>
+          </CardContent>
+          <CardFooter className="text-xs text-gray-500">
+            Signing out will end your current session and take you back to the login screen.
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

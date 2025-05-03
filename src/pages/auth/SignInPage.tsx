@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LogIn, UserPlus, Check } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SignInPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,35 +17,41 @@ const SignInPage = () => {
   const [name, setName] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { signIn, signUp, isAuthenticated } = useAuth();
+
+  // If already authenticated, redirect to home
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate authentication
-    setTimeout(() => {
-      toast({
-        title: "Signed in",
-        description: "You have been successfully signed in",
-      });
+    try {
+      const success = await signIn(email, password);
+      if (success) {
+        // Navigate after successful login
+        navigate('/');
+      }
+    } finally {
       setIsLoading(false);
-      navigate('/');
-    }, 1500);
+    }
   };
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate account creation
-    setTimeout(() => {
-      toast({
-        title: "Account created",
-        description: "Your account has been successfully created",
-      });
+    try {
+      const success = await signUp(name, email, password);
+      if (success) {
+        // Navigate after successful registration
+        navigate('/');
+      }
+    } finally {
       setIsLoading(false);
-      navigate('/');
-    }, 1500);
+    }
   };
 
   return (
@@ -61,6 +68,7 @@ const SignInPage = () => {
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           
+          {/* Sign In Tab */}
           <TabsContent value="signin">
             <Card>
               <CardHeader>
@@ -131,6 +139,7 @@ const SignInPage = () => {
             </Card>
           </TabsContent>
           
+          {/* Sign Up Tab */}
           <TabsContent value="signup">
             <Card>
               <CardHeader>
@@ -173,7 +182,7 @@ const SignInPage = () => {
                       required
                     />
                     <p className="text-xs text-gray-500">
-                      Must be at least 8 characters with a number and special character
+                      Must be at least 6 characters with a number and special character
                     </p>
                   </div>
                   
