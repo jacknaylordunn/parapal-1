@@ -36,6 +36,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { guidelineCategories } from './Guidelines';
 
 const Index = () => {
   const { activeEncounter, isLoading } = useEncounter();
@@ -159,36 +160,22 @@ const Index = () => {
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="cardiac">
-                <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 px-4 -mx-4 rounded">
-                  Cardiac Emergencies
-                </AccordionTrigger>
-                <AccordionContent className="space-y-2">
-                  <GuidelineLink title="Acute Coronary Syndromes" />
-                  <GuidelineLink title="Cardiac Arrest" />
-                  <GuidelineLink title="Cardiac Rhythm Disturbances" />
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="respiratory">
-                <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 px-4 -mx-4 rounded">
-                  Respiratory Conditions
-                </AccordionTrigger>
-                <AccordionContent className="space-y-2">
-                  <GuidelineLink title="Asthma" />
-                  <GuidelineLink title="COPD" />
-                  <GuidelineLink title="Pulmonary Embolism" />
-                </AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="medical">
-                <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 px-4 -mx-4 rounded">
-                  Medical Emergencies
-                </AccordionTrigger>
-                <AccordionContent className="space-y-2">
-                  <GuidelineLink title="Sepsis" />
-                  <GuidelineLink title="Stroke/TIA" />
-                  <GuidelineLink title="Diabetic Emergencies" />
-                </AccordionContent>
-              </AccordionItem>
+              {guidelineCategories.slice(0, 3).map((category) => (
+                <AccordionItem key={category.id} value={category.id}>
+                  <AccordionTrigger className="hover:bg-gray-50 dark:hover:bg-gray-800 px-4 -mx-4 rounded">
+                    {category.name}
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-2">
+                    {category.guidelines.slice(0, 3).map((guideline) => (
+                      <GuidelineLink 
+                        key={guideline.id} 
+                        title={guideline.title} 
+                        onClick={() => navigate(`/guidelines/${category.id}/${guideline.id}`)}
+                      />
+                    ))}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
             </Accordion>
           </CardContent>
           <CardFooter>
@@ -328,15 +315,15 @@ const QuickActionCard = ({ title, icon, onClick, color = "bg-nhs-blue" }) => {
 };
 
 // Guideline Link component 
-const GuidelineLink = ({ title }) => {
+const GuidelineLink = ({ title, onClick }) => {
   return (
-    <a 
-      href="#" 
-      className="flex items-center justify-between p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 text-sm"
     >
       <span>{title}</span>
       <ChevronRight size={16} className="text-gray-400" />
-    </a>
+    </button>
   );
 };
 

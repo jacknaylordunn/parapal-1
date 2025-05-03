@@ -65,7 +65,7 @@ const MainLayout = () => {
           >
             ParaPal
           </h1>
-          {activeEncounter && (
+          {activeEncounter && activeEncounter.incidentNumber && (
             <span className="bg-white text-nhs-blue dark:bg-nhs-dark-blue dark:text-white rounded-full px-3 py-1 text-sm font-bold border dark:border-white">
               {activeEncounter.incidentNumber}
             </span>

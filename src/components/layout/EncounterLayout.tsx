@@ -1,3 +1,4 @@
+
 import { Outlet, NavLink, useParams, Link, useNavigate } from "react-router-dom";
 import { User, Activity, FileText, BookOpen, Share2, Home, X, Clock, ChevronLeft, Menu, Settings, Save, Trash2 } from "lucide-react";
 import { useEncounter } from "../../contexts/EncounterContext";
@@ -6,25 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+
 const EncounterLayout = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
-  const {
-    activeEncounter,
-    endEncounter,
-    deleteEncounter,
-    refreshEncounter
-  } = useEncounter();
+  const { id } = useParams<{ id: string }>();
+  const { activeEncounter, endEncounter, deleteEncounter, refreshEncounter } = useEncounter();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showEndEncounterDialog, setShowEndEncounterDialog] = useState(false);
   const [showDeleteEncounterDialog, setShowDeleteEncounterDialog] = useState(false);
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Refresh encounter data periodically to get latest patient info
@@ -83,10 +74,7 @@ const EncounterLayout = () => {
     if (!activeEncounter || !activeEncounter.patientDetails) {
       return "Unknown Patient";
     }
-    const {
-      firstName,
-      lastName
-    } = activeEncounter.patientDetails;
+    const { firstName, lastName } = activeEncounter.patientDetails;
     if (firstName && lastName) {
       return `${firstName} ${lastName}`;
     } else if (activeEncounter.isUnknownPatient) {
@@ -114,6 +102,7 @@ const EncounterLayout = () => {
   const handleDeleteEncounterClick = () => {
     setShowDeleteEncounterDialog(true);
   };
+  
   const confirmEndEncounter = async () => {
     try {
       await endEncounter();
@@ -129,6 +118,7 @@ const EncounterLayout = () => {
       });
     }
   };
+  
   const confirmDeleteEncounter = async () => {
     try {
       await deleteEncounter();
@@ -144,20 +134,25 @@ const EncounterLayout = () => {
       });
     }
   };
-  const SidebarContent = () => <div className="flex flex-col h-full">
+  
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
       {/* Timer display */}
       <div className="text-center mb-4 font-mono p-2 bg-gray-100 dark:bg-gray-700 rounded-md flex justify-center items-center">
         <Clock size={18} className="mr-2 text-nhs-blue dark:text-nhs-light-blue" />
         <span className="font-semibold">{elapsedTime}</span>
       </div>
       
-      {/* Patient info */}
+      {/* Patient info with incident number */}
       <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-md mb-4">
         <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Current Patient</h3>
         <p className="font-semibold text-lg truncate">{getPatientName()}</p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Incident: {activeEncounter?.incidentNumber || 'Not Assigned'}
-        </p>
+        <div className="flex items-center mt-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400 mr-1">Incident:</span>
+          <span className="bg-nhs-blue/10 text-nhs-blue dark:text-nhs-light-blue px-2 py-0.5 rounded-sm text-xs font-medium">
+            {activeEncounter?.incidentNumber || 'Not Assigned'}
+          </span>
+        </div>
       </div>
       
       {/* Navigation */}
@@ -168,12 +163,17 @@ const EncounterLayout = () => {
         
         <hr className="my-2 border-gray-200 dark:border-gray-700" />
         
-        {navItems.map(item => <NavLink key={item.to} to={item.to} onClick={() => setIsMobileSidebarOpen(false)} className={({
-        isActive
-      }) => `flex items-center p-2 rounded-md ${isActive ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+        {navItems.map(item => (
+          <NavLink 
+            key={item.to} 
+            to={item.to} 
+            onClick={() => setIsMobileSidebarOpen(false)} 
+            className={({isActive}) => `flex items-center p-2 rounded-md ${isActive ? 'bg-nhs-blue dark:bg-nhs-dark-blue text-white' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+          >
             <span className="w-7">{item.icon}</span>
             <span className="ml-2">{item.label}</span>
-          </NavLink>)}
+          </NavLink>
+        ))}
       </nav>
       
       <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
@@ -185,8 +185,11 @@ const EncounterLayout = () => {
           <Trash2 size={18} className="mr-2" /> Delete Encounter
         </Button>
       </div>
-    </div>;
-  return <div className="container mx-auto px-4 py-4">
+    </div>
+  );
+  
+  return (
+    <div className="container mx-auto px-4 py-4">
       {/* Top navigation bar - visible on all devices */}
       <div className="flex justify-between items-center mb-4 bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm">
         {/* Mobile menu button */}
@@ -205,15 +208,18 @@ const EncounterLayout = () => {
 
         {/* Back to dashboard button - visible on all devices */}
         <Link to="/" onClick={handleReturnToDashboard} className="flex items-center text-nhs-blue">
-          
-          
           <span className="sm:hidden">Dashboard</span>
         </Link>
 
-        {/* Current section indicator */}
+        {/* Current section indicator with incident number */}
         <div className="flex items-center">
-          <span className="font-medium">Patient Encounter</span>
-          <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+          <span className="font-medium mr-2">Patient Encounter</span>
+          {activeEncounter?.incidentNumber && (
+            <span className="mr-2 bg-nhs-blue/10 text-nhs-blue dark:text-nhs-light-blue px-2 py-0.5 rounded-sm text-xs font-medium">
+              {activeEncounter.incidentNumber}
+            </span>
+          )}
+          <span className="ml-1 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
             Active
           </span>
         </div>
@@ -275,6 +281,8 @@ const EncounterLayout = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>;
+    </div>
+  );
 };
+
 export default EncounterLayout;

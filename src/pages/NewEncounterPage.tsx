@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEncounter } from '../contexts/EncounterContext';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast-notification';
+import { useToast } from '@/hooks/use-toast';
 
 // Define call types for dropdown
 const callTypes = [
@@ -23,6 +23,7 @@ const NewEncounterPage = () => {
   const [validationError, setValidationError] = useState<string | null>(null);
   
   const { createNewEncounter } = useEncounter();
+  const { toast } = useToast();
   const navigate = useNavigate();
   
   // Handle form submission
@@ -58,10 +59,20 @@ const NewEncounterPage = () => {
       const newId = await createNewEncounter(incidentNumber.trim(), callType);
       
       // Provide feedback before navigation
+      toast({
+        title: "Encounter Created",
+        description: `New encounter started with incident number ${incidentNumber.trim()}`
+      });
+      
       navigate(`/encounter/${newId}/patient`);
     } catch (err) {
       console.error('Encounter creation error:', err);
       setValidationError('Failed to create encounter. Please try again.');
+      toast({
+        title: "Error",
+        description: "Failed to create encounter. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }
